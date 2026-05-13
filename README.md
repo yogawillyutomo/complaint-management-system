@@ -56,3 +56,203 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+# Complaint Management System
+
+Web-based Complaint Management System built using Laravel and Livewire for managing employee complaints, workflow tracking, role-based access control (RBAC), and operational analytics.
+
+---
+
+## 🚀 Features
+
+### Authentication & Security
+- Login & Logout
+- Role-Based Access Control (RBAC)
+- Ownership Protection
+- Protected Complaint Access
+
+### Complaint Management
+- Create Complaint
+- Edit Complaint
+- Delete Complaint
+- Complaint Detail View
+- Complaint Timeline
+- Complaint History Tracking
+
+### Workflow System
+- Submitted
+- Validated
+- Assigned
+- In Progress
+- Waiting Input
+- Resolved
+- Closed
+- Rejected
+- Escalated
+
+### Roles
+- Employee
+- Supervisor
+- HR / Handler
+- Pimpinan / Management
+- Admin
+
+### Dashboard
+- Complaint Statistics
+- Recent Complaints
+- Role-Aware Dashboard
+- Priority Statistics
+- Status Monitoring
+
+### Advanced Table
+- Search
+- Filter Status
+- Filter Priority
+- Sorting
+- Pagination
+
+---
+
+## 🛠️ Tech Stack
+
+- Laravel
+- Livewire
+- TailwindCSS
+- Alpine.js
+- MySQL
+- ApexCharts
+
+---
+
+## 📦 Installation
+
+### Clone Repository
+
+```bash
+git clone https://github.com/YOUR_USERNAME/complaint-management-system.git
+```
+
+---
+
+### Enter Project
+
+```bash
+cd complaint-management-system
+```
+
+---
+
+### Install Dependencies
+
+```bash
+composer install
+npm install
+```
+
+---
+
+### Setup Environment
+
+Copy `.env.example`
+
+```bash
+cp .env.example .env
+```
+
+Windows:
+
+```bash
+copy .env.example .env
+```
+
+---
+
+### Generate App Key
+
+```bash
+php artisan key:generate
+```
+
+---
+
+### Configure Database
+
+Edit `.env`
+
+```env
+DB_DATABASE=complaint_system
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+---
+
+### Run Migration
+
+```bash
+php artisan migrate
+```
+
+Optional Seeder:
+
+```bash
+php artisan db:seed
+```
+
+---
+
+### Run Frontend
+
+```bash
+npm run dev
+```
+
+---
+
+### Run Laravel Server
+
+```bash
+php artisan serve
+```
+
+---
+
+## 🔐 Default Roles
+
+- Admin
+- Supervisor
+- HR
+- Employee
+- Pimpinan
+
+---
+
+## 📊 Current System Status
+
+✅ Authentication  
+✅ RBAC  
+✅ Complaint Workflow  
+✅ Timeline Activity  
+✅ Dashboard Analytics  
+✅ Role-Based Data Isolation  
+✅ Complaint Filtering & Sorting  
+
+---
+
+## 📌 Future Development
+
+- Export Excel/PDF
+- SLA Monitoring
+- Notification System
+- Email Integration
+- File Attachments
+- KPI Dashboard
+- Escalation Approval
+- Real-time Notification
+
+---
+
+## 👨‍💻 Developer
+
+Developed as part of a thesis/research project for employee complaint management system implementation.
