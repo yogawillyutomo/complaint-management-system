@@ -66,6 +66,124 @@
                     Back
                 </a>
 
+                {{-- Supervisor Validate --}}
+                @if(
+
+                auth()->user()->roles
+                ->pluck('name')
+                ->contains(
+                fn($role) =>
+                trim(strtolower($role)) === 'supervisor'
+                )
+
+                && $complaint->status === 'submitted'
+
+                )
+
+                <button
+                    wire:click="validateComplaint"
+                    class="px-5 py-3 rounded-2xl bg-emerald-500 text-white hover:bg-emerald-600 transition">
+
+                    Validate
+
+                </button>
+
+                <button
+                    wire:click="rejectComplaint"
+                    class="px-5 py-3 rounded-2xl bg-red-500 text-white hover:bg-red-600 transition">
+
+                    Reject
+
+                </button>
+
+                @endif
+
+
+
+                @if(
+
+                auth()->user()->roles
+                ->pluck('name')
+                ->contains(
+                fn($role) =>
+                trim(strtolower($role)) === 'supervisor'
+                )
+
+                && $complaint->status === 'validated'
+
+                )
+
+                <button
+                    wire:click="openAssignModal"
+                    class="px-5 py-3 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-700 transition">
+
+                    Assign Handler
+
+                </button>
+
+                @endif
+
+                {{-- HR Workflow --}}
+                @if(
+
+                auth()->user()->roles
+                ->pluck('name')
+                ->contains(
+                fn($role) =>
+                trim(strtolower($role)) === 'hr'
+                )
+
+                && $complaint->assigned_to === auth()->id()
+
+                )
+
+                {{-- Start Progress --}}
+                @if($complaint->status === 'assigned')
+
+                <button
+                    wire:click="startProgress"
+                    class="px-5 py-3 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 transition">
+
+                    Start Progress
+
+                </button>
+
+                @endif
+
+                {{-- Waiting Input --}}
+                @if($complaint->status === 'in_progress')
+
+                <button
+                    wire:click="waitingInput"
+                    class="px-5 py-3 rounded-2xl bg-orange-500 text-white hover:bg-orange-600 transition">
+
+                    Waiting Input
+
+                </button>
+
+                <button
+                    wire:click="resolveComplaint"
+                    class="px-5 py-3 rounded-2xl bg-green-600 text-white hover:bg-green-700 transition">
+
+                    Resolve
+
+                </button>
+
+                @endif
+
+                {{-- Close --}}
+                @if($complaint->status === 'resolved')
+
+                <button
+                    wire:click="closeComplaint"
+                    class="px-5 py-3 rounded-2xl bg-slate-700 text-white hover:bg-slate-800 transition">
+
+                    Close Complaint
+
+                </button>
+
+                @endif
+
                 @if(
 
                 auth()->user()->hasRole('Admin')
@@ -83,6 +201,8 @@
 
                     Edit Complaint
                 </button>
+
+                @endif
 
                 @endif
 
@@ -235,6 +355,132 @@
                     </div>
 
                 </div>
+
+                {{-- Comments --}}
+                <div class="bg-white rounded-3xl border border-surface-100 p-8 mt-8">
+
+                    <div class="flex items-center justify-between mb-6">
+
+                        <div>
+
+                            <h3 class="text-2xl font-bold text-slate2-900">
+                                Discussion
+                            </h3>
+
+                            <p class="text-sm text-slate2-500 mt-1">
+                                Complaint discussion and responses
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    {{-- Comment List --}}
+                    <div class="space-y-5">
+
+                        @forelse($complaint->comments as $comment)
+
+                        <div class="flex gap-4">
+
+                            {{-- Avatar --}}
+                            <div
+                                class="w-11 h-11 rounded-2xl bg-brand-600 text-white flex items-center justify-center font-semibold shrink-0">
+
+                                {{ strtoupper(substr($comment->user->name, 0, 1)) }}
+
+                            </div>
+
+                            {{-- Content --}}
+                            <div class="flex-1">
+
+                                <div class="bg-surface-50 rounded-2xl p-5">
+
+                                    <div class="flex items-center justify-between mb-2">
+
+                                        <div>
+
+                                            <p class="font-semibold text-slate2-900">
+                                            <div class="flex items-center gap-2">
+
+                                                <p class="font-semibold text-slate2-900">
+                                                    {{ $comment->user->name }}
+                                                </p>
+
+                                                <span class="px-2 py-1 rounded-lg bg-surface-100 text-xs text-slate2-600">
+
+                                                    {{ $comment->user->roles->first()?->name }}
+
+                                                </span>
+
+                                            </div>
+                                            </p>
+
+                                            <p class="text-xs text-slate2-500">
+                                                {{ $comment->created_at->diffForHumans() }}
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                    <p class="text-slate2-700 leading-relaxed">
+                                        {{ $comment->message }}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        @empty
+
+                        <div
+                            class="border border-dashed border-surface-200 rounded-3xl p-10 text-center">
+
+                            <p class="text-slate2-500">
+                                No discussion yet.
+                            </p>
+
+                        </div>
+
+                        @endforelse
+
+                    </div>
+
+                    {{-- Comment Form --}}
+                    <div class="mt-8">
+
+                        <textarea
+                            wire:model="message"
+                            rows="4"
+                            placeholder="Write a comment..."
+                            class="input resize-none"></textarea>
+
+                        @error('message')
+
+                        <p class="text-sm text-red-500 mt-2">
+                            {{ $message }}
+                        </p>
+
+                        @enderror
+
+                        <div class="flex justify-end mt-4">
+
+                            <button
+                                wire:click="sendComment"
+                                class="px-5 py-3 rounded-2xl bg-brand-600 text-white hover:bg-brand-700 transition">
+
+                                Send Comment
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
             </div>
 
             {{-- Right --}}
@@ -716,6 +962,103 @@
 
                         Deleting...
                     </span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    @endif
+
+    @if($showAssignModal)
+
+    <div
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+
+        <div
+            class="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden">
+
+            {{-- Header --}}
+            <div class="flex items-center justify-between px-8 py-6 border-b border-surface-100">
+
+                <div>
+
+                    <h2 class="text-2xl font-bold text-slate2-900">
+                        Assign Handler
+                    </h2>
+
+                    <p class="text-sm text-slate2-500 mt-1">
+                        Assign complaint to HR handler
+                    </p>
+
+                </div>
+
+                <button
+                    wire:click="$set('showAssignModal', false)"
+                    class="w-10 h-10 rounded-2xl hover:bg-surface-100 flex items-center justify-center transition">
+
+                    <x-heroicon-o-x-mark class="w-5 h-5 text-slate2-500" />
+
+                </button>
+
+            </div>
+
+            {{-- Body --}}
+            <div class="p-8">
+
+                <label class="block text-sm font-medium text-slate2-700 mb-3">
+
+                    Select Handler
+
+                </label>
+
+                <select
+                    wire:model.live="assigned_to"
+                    class="input">
+
+                    <option value="">
+                        Select HR Handler
+                    </option>
+
+                    @foreach($handlers as $handler)
+
+                    <option value="{{ $handler->id }}">
+                        {{ $handler->name }}
+                    </option>
+
+                    @endforeach
+
+                </select>
+
+                @error('assigned_to')
+
+                <p class="text-sm text-red-500 mt-2">
+                    {{ $message }}
+                </p>
+
+                @enderror
+
+            </div>
+
+            {{-- Footer --}}
+            <div class="flex items-center justify-end gap-4 px-8 py-6 border-t border-surface-100 bg-surface-50">
+
+                <button
+                    wire:click="$set('showAssignModal', false)"
+                    class="px-5 py-3 rounded-2xl border border-surface-200 bg-white hover:bg-surface-100 transition">
+
+                    Cancel
+
+                </button>
+
+                <button
+                    wire:click="assignHandler"
+                    class="px-5 py-3 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-700 transition">
+
+                    Assign Handler
 
                 </button>
 

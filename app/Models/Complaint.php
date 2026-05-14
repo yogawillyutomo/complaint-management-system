@@ -10,7 +10,7 @@ class Complaint extends Model
     protected $fillable = [
         'ticket_number',
         'reporter_id',
-        'handler_id',
+        'assigned_to',
         'category_id',
         'priority_id',
         'title',
@@ -25,10 +25,6 @@ class Complaint extends Model
         return $this->belongsTo(User::class, 'reporter_id');
     }
 
-    public function handler()
-    {
-        return $this->belongsTo(User::class, 'handler_id');
-    }
 
     public function category()
     {
@@ -48,6 +44,17 @@ class Complaint extends Model
     public function histories()
     {
         return $this->hasMany(ComplaintHistory::class)
+            ->latest();
+    }
+
+    public function handler()
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class)
             ->latest();
     }
 }

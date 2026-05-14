@@ -7,6 +7,7 @@ use Livewire\Component;
 use App\Models\Category;
 use App\Models\Priority;
 use App\Models\ComplaintHistory;
+use App\Models\User;
 
 class ComplaintShow extends Component
 {
@@ -26,6 +27,12 @@ class ComplaintShow extends Component
 
     public $priority_id = '';
 
+    public $assigned_to = '';
+
+    public $showAssignModal = false;
+
+    public $message = '';
+
     public function mount(Complaint $complaint)
     {
         $this->complaint = $complaint->load([
@@ -33,6 +40,8 @@ class ComplaintShow extends Component
             'category',
             'priority',
             'histories.user',
+            'handler',
+            'comments.user',
         ]);
 
         if (
@@ -43,6 +52,50 @@ class ComplaintShow extends Component
         }
 
         $this->status = $this->complaint->status;
+    }
+
+    public function openAssignModal()
+    {
+        $this->showAssignModal = true;
+    }
+
+    public function assignHandler()
+    {
+        $this->validate([
+
+            'assigned_to' => 'required|exists:users,id',
+
+        ]);
+
+        $this->complaint->update([
+
+            'assigned_to' => $this->assigned_to,
+
+            'status' => 'assigned',
+
+        ]);
+
+        ComplaintHistory::create([
+
+            'complaint_id' => $this->complaint->id,
+
+            'user_id' => auth()->id(),
+
+            'type' => 'assigned',
+
+            'description' => 'Complaint assigned to handler',
+
+        ]);
+
+        $this->complaint->refresh();
+
+        $this->showAssignModal = false;
+
+        $this->dispatch(
+            'toast',
+            type: 'success',
+            message: 'Handler assigned successfully.'
+        );
     }
 
     public function updateStatus()
@@ -172,6 +225,249 @@ class ComplaintShow extends Component
         $this->showDeleteModal = false;
     }
 
+    public function validateComplaint()
+    {
+        abort_unless(
+            auth()->user()->roles
+                ->pluck('name')
+                ->contains(
+                    fn($role) =>
+                    trim(strtolower($role)) === 'supervisor'
+                ),
+            403
+        );
+
+        $this->complaint->update([
+
+            'status' => 'validated',
+
+        ]);
+
+        ComplaintHistory::create([
+
+            'complaint_id' => $this->complaint->id,
+
+            'user_id' => auth()->id(),
+
+            'type' => 'validated',
+
+            'description' => 'Complaint validated by supervisor',
+
+        ]);
+
+        $this->complaint->refresh();
+
+        $this->dispatch(
+            'toast',
+            type: 'success',
+            message: 'Complaint validated successfully.'
+        );
+    }
+
+    public function rejectComplaint()
+    {
+        $this->complaint->update([
+
+            'status' => 'rejected',
+
+        ]);
+
+        ComplaintHistory::create([
+
+            'complaint_id' => $this->complaint->id,
+
+            'user_id' => auth()->id(),
+
+            'type' => 'rejected',
+
+            'description' => 'Complaint rejected by supervisor',
+
+        ]);
+
+        $this->complaint->refresh();
+
+        $this->dispatch(
+            'toast',
+            type: 'success',
+            message: 'Complaint rejected.'
+        );
+    }
+
+    public function startProgress()
+    {
+        $this->complaint->update([
+
+            'status' => 'in_progress',
+
+        ]);
+
+        ComplaintHistory::create([
+
+            'complaint_id' => $this->complaint->id,
+
+            'user_id' => auth()->id(),
+
+            'type' => 'in_progress',
+
+            'description' => 'Complaint processing started',
+
+        ]);
+
+        $this->complaint->refresh();
+
+        $this->dispatch(
+            'toast',
+            type: 'success',
+            message: 'Complaint is now in progress.'
+        );
+    }
+
+    public function waitingInput()
+    {
+        $this->complaint->update([
+
+            'status' => 'waiting_input',
+
+        ]);
+
+        ComplaintHistory::create([
+
+            'complaint_id' => $this->complaint->id,
+
+            'user_id' => auth()->id(),
+
+            'type' => 'waiting_input',
+
+            'description' => 'Waiting additional input from employee',
+
+        ]);
+
+        $this->complaint->refresh();
+
+        $this->dispatch(
+            'toast',
+            type: 'success',
+            message: 'Complaint waiting for employee input.'
+        );
+    }
+
+    public function resolveComplaint()
+    {
+        $this->complaint->update([
+
+            'status' => 'resolved',
+
+            'resolved_at' => now(),
+
+        ]);
+
+        ComplaintHistory::create([
+
+            'complaint_id' => $this->complaint->id,
+
+            'user_id' => auth()->id(),
+
+            'type' => 'resolved',
+
+            'description' => 'Complaint resolved successfully',
+
+        ]);
+
+        $this->complaint->refresh();
+
+        $this->dispatch(
+            'toast',
+            type: 'success',
+            message: 'Complaint resolved.'
+        );
+    }
+
+    public function closeComplaint()
+    {
+        $this->complaint->update([
+
+            'status' => 'closed',
+
+            'closed_at' => now(),
+
+        ]);
+
+        ComplaintHistory::create([
+
+            'complaint_id' => $this->complaint->id,
+
+            'user_id' => auth()->id(),
+
+            'type' => 'closed',
+
+            'description' => 'Complaint closed',
+
+        ]);
+
+        $this->complaint->refresh();
+
+        $this->dispatch(
+            'toast',
+            type: 'success',
+            message: 'Complaint closed.'
+        );
+    }
+
+    public function sendComment()
+    {
+        $this->validate([
+
+            'message' => 'required|min:2',
+
+        ]);
+
+        $this->complaint->comments()->create([
+
+            'user_id' => auth()->id(),
+
+            'message' => $this->message,
+
+        ]);
+
+        // Jika employee reply saat waiting input
+        if (
+
+            $this->complaint->status === 'waiting_input'
+
+            && $this->complaint->reporter_id === auth()->id()
+
+        ) {
+
+            $this->complaint->update([
+
+                'status' => 'in_progress',
+
+            ]);
+
+            ComplaintHistory::create([
+
+                'complaint_id' => $this->complaint->id,
+
+                'user_id' => auth()->id(),
+
+                'type' => 'response',
+
+                'description' => 'Employee provided additional information',
+
+            ]);
+        }
+
+        $this->message = '';
+
+        $this->complaint->refresh();
+
+        $this->dispatch(
+            'toast',
+            type: 'success',
+            message: 'Comment sent successfully.'
+        );
+    }
+
     public function render()
     {
         return view('livewire.complaint.complaint-show', [
@@ -179,6 +475,8 @@ class ComplaintShow extends Component
             'categories' => Category::all(),
 
             'priorities' => Priority::all(),
+
+            'handlers' => User::role('HR')->get(),
 
         ])->layout('layouts.app');
     }
