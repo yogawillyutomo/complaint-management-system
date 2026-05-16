@@ -61,17 +61,16 @@
                     <span>Complaints</span>
                 </a>
 
-                @if(auth()->user()->hasRoleCustom('Admin'))
+                @if(auth()->user()->roles()->where('name', 'Admin')->exists())
                 <a href="{{ route('users.index') }}"
                     class="sidebar-item {{ request()->routeIs('users.*') ? 'sidebar-item-active' : '' }}">
 
                     <x-heroicon-o-users class="w-5 h-5" />
 
                     <span>Users</span>
-
                 </a>
                 @endif
-                
+
                 <a href="#"
                     class="sidebar-item">
 
@@ -141,7 +140,7 @@
                                 </p>
 
                                 <p class="text-xs text-slate2-600">
-                                    {{ auth()->user()->roles->first()?->name ?? 'User' }}
+                                    {{ auth()->user()->roles()->first()?->name ?? 'User' }}
                                 </p>
 
                             </div>
