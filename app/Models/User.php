@@ -43,11 +43,11 @@ class User extends Authenticatable
         return $this->hasMany(Complaint::class, 'handler_id');
     }
 
-    // public function hasRole($role)
-    // {
-    //     return $this->roles
-    //         ->pluck('name')
-    //         ->map(fn($r) => strtolower($r))
-    //         ->contains(strtolower($role));
-    // }
+    public function hasRoleCustom($role)
+    {
+        return $this->roles
+            ->pluck('name')
+            ->map(fn($r) => strtolower(trim($r)))
+            ->contains(strtolower(trim($role)));
+    }
 }

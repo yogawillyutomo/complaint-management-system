@@ -61,7 +61,7 @@
                     <span>Complaints</span>
                 </a>
 
-                @if(auth()->user()->hasRole('Admin'))
+                @if(auth()->user()->hasRoleCustom('Admin'))
                 <a href="{{ route('users.index') }}"
                     class="sidebar-item {{ request()->routeIs('users.*') ? 'sidebar-item-active' : '' }}">
 
