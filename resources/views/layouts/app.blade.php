@@ -61,7 +61,7 @@
                     <span>Complaints</span>
                 </a>
 
-                @if(auth()->user()->email === 'admin@gmail.com')
+                @if(auth()->user()->hasRole('Admin'))
                 <a href="{{ route('users.index') }}"
                     class="sidebar-item {{ request()->routeIs('users.*') ? 'sidebar-item-active' : '' }}">
 
