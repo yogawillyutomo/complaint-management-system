@@ -27,7 +27,7 @@ class UserIndex extends Component
     public function mount()
     {
         abort_unless(
-            auth()->user()->hasRole('Admin'),
+            auth()->user()->hasRole('admin'),
             403
         );
     }
@@ -72,6 +72,8 @@ class UserIndex extends Component
             'email' => $this->email,
 
             'password' => Hash::make($this->password),
+
+            'email_verified_at' => now(),
 
         ]);
 

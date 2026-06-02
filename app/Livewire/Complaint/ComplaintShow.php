@@ -45,7 +45,7 @@ class ComplaintShow extends Component
         ]);
 
         if (
-            auth()->user()->hasRole('Employee')
+            auth()->user()->hasRole('karyawan')
             && auth()->id() !== $this->complaint->reporter_id
         ) {
             abort(403);
@@ -103,8 +103,8 @@ class ComplaintShow extends Component
 
         abort_unless(
 
-            auth()->user()->hasRole('Admin') ||
-                auth()->user()->hasRole('HR'),
+            auth()->user()->hasRole('admin') ||
+                auth()->user()->hasRole('hrd'),
 
             403
 
@@ -161,9 +161,9 @@ class ComplaintShow extends Component
 
         abort_unless(
 
-            auth()->user()->hasRole('Admin')
+            auth()->user()->hasRole('admin')
 
-                || auth()->user()->hasRole('HR')
+                || auth()->user()->hasRole('hrd')
 
                 || auth()->id() === $this->complaint->reporter_id,
 
@@ -209,7 +209,7 @@ class ComplaintShow extends Component
     public function deleteComplaint()
     {
         abort_unless(
-            auth()->user()->hasRole('Admin'),
+            auth()->user()->hasRole('admin'),
             403
         );
 
@@ -429,7 +429,7 @@ class ComplaintShow extends Component
 
         ]);
 
-        // Jika employee reply saat waiting input
+        // Jika karyawan membalas saat status menunggu input.
         if (
 
             $this->complaint->status === 'waiting_input'
@@ -476,7 +476,7 @@ class ComplaintShow extends Component
 
             'priorities' => Priority::all(),
 
-            'handlers' => User::role('HR')->get(),
+            'handlers' => User::role('hrd')->get(),
 
         ])->layout('layouts.app');
     }

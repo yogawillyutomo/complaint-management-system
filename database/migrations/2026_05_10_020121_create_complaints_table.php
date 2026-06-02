@@ -17,11 +17,6 @@ return new class extends Migration
                 ->constrained('users')
                 ->cascadeOnDelete();
 
-            $table->foreignId('handler_id')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete();
-
             $table->foreignId('category_id')
                 ->constrained()
                 ->cascadeOnDelete();

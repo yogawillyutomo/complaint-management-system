@@ -3,6 +3,7 @@
 namespace App\Livewire\Complaint;
 
 use App\Models\Complaint;
+use App\Models\ComplaintHistory;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Category;
@@ -39,7 +40,7 @@ class ComplaintIndex extends Component
             'priority_id' => 'required',
         ]);
 
-        Complaint::create([
+        $complaint = Complaint::create([
 
             'ticket_number' => 'CMP-' . now()->format('YmdHis'),
 
@@ -55,6 +56,13 @@ class ComplaintIndex extends Component
 
             'status' => 'submitted',
 
+        ]);
+
+        ComplaintHistory::create([
+            'complaint_id' => $complaint->id,
+            'user_id' => auth()->id(),
+            'type' => 'created',
+            'description' => 'Complaint created',
         ]);
 
         $this->reset([
@@ -89,14 +97,14 @@ class ComplaintIndex extends Component
             'priority',
         ]);
 
-        // Employee hanya lihat complaint sendiri
+        // Karyawan hanya melihat complaint miliknya sendiri.
         if (
 
             auth()->user()->roles
             ->pluck('name')
             ->contains(
                 fn($role) =>
-                trim(strtolower($role)) === 'employee'
+                trim(strtolower($role)) === 'karyawan'
             )
 
         ) {

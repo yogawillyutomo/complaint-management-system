@@ -71,8 +71,8 @@
                             In Progress
                         </option>
 
-                        <option value="waiting_feedback">
-                            Waiting Feedback
+                        <option value="waiting_input">
+                            Waiting Input
                         </option>
 
                         <option value="resolved">
@@ -234,17 +234,29 @@
                                     @if($complaint->status === 'submitted')
                                         bg-yellow-100 text-yellow-700
 
-                                    @elseif($complaint->status === 'reviewed')
+                                    @elseif($complaint->status === 'validated')
+                                        bg-sky-100 text-sky-700
+
+                                    @elseif($complaint->status === 'assigned')
                                         bg-indigo-100 text-indigo-700
 
                                     @elseif($complaint->status === 'in_progress')
                                         bg-blue-100 text-blue-700
 
+                                    @elseif($complaint->status === 'waiting_input')
+                                        bg-orange-100 text-orange-700
+
                                     @elseif($complaint->status === 'resolved')
                                         bg-green-100 text-green-700
 
+                                    @elseif($complaint->status === 'closed')
+                                        bg-slate-100 text-slate-700
+
                                     @elseif($complaint->status === 'rejected')
                                         bg-red-100 text-red-700
+
+                                    @elseif($complaint->status === 'escalated')
+                                        bg-purple-100 text-purple-700
                                     @endif
                                 ">
 

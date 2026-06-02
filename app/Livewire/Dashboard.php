@@ -95,14 +95,14 @@ class Dashboard extends Component
     {
         $query = Complaint::query();
 
-        // Employee hanya lihat complaint sendiri
+        // Karyawan hanya melihat complaint miliknya sendiri.
         if (
 
             auth()->user()->roles
             ->pluck('name')
             ->contains(
                 fn($role) =>
-                trim(strtolower($role)) === 'employee'
+                trim(strtolower($role)) === 'karyawan'
             )
 
         ) {

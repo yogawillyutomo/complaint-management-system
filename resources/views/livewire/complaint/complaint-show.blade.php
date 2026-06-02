@@ -30,7 +30,7 @@
                         @elseif($complaint->status === 'in_progress')
                             bg-blue-100 text-blue-700
 
-                        @elseif($complaint->status === 'waiting_feedback')
+                        @elseif($complaint->status === 'waiting_input')
                             bg-orange-100 text-orange-700
 
                         @elseif($complaint->status === 'resolved')
@@ -186,9 +186,9 @@
 
                 @if(
 
-                auth()->user()->hasRole('Admin')
+                auth()->user()->hasRole('admin')
 
-                || auth()->user()->hasRole('HR')
+                || auth()->user()->hasRole('hrd')
 
                 || auth()->id() === $complaint->reporter_id
 
@@ -206,7 +206,7 @@
 
                 @endif
 
-                @if(auth()->user()->hasRole('Admin'))
+                @if(auth()->user()->hasRole('admin'))
                 <button
                     wire:click="openDeleteModal"
                     class="px-5 py-3 rounded-2xl bg-red-500 text-white hover:bg-red-600 transition">
@@ -488,8 +488,8 @@
 
                 {{-- Status --}}
                 @if(
-                auth()->user()->hasRole('Admin') ||
-                auth()->user()->hasRole('HR')
+                auth()->user()->hasRole('admin') ||
+                auth()->user()->hasRole('hrd')
                 )
                 <div class="card p-6">
 
@@ -514,7 +514,7 @@
                             @elseif($complaint->status === 'in_progress')
                                 bg-blue-100 text-blue-700
 
-                            @elseif($complaint->status === 'waiting_feedback')
+                            @elseif($complaint->status === 'waiting_input')
                                 bg-orange-100 text-orange-700
 
                             @elseif($complaint->status === 'resolved')
@@ -581,8 +581,8 @@
                                     In Progress
                                 </option>
 
-                                <option value="waiting_feedback">
-                                    Waiting Feedback
+                                <option value="waiting_input">
+                                    Waiting Input
                                 </option>
 
                                 <option value="resolved">

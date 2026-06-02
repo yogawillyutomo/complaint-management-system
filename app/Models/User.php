@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'email_verified_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -40,17 +40,7 @@ class User extends Authenticatable
 
     public function assignedComplaints()
     {
-        return $this->hasMany(Complaint::class, 'handler_id');
-    }
-
-    public function roles()
-    {
-        return $this->belongsToMany(
-            \Spatie\Permission\Models\Role::class,
-            'model_has_roles',
-            'model_id',
-            'role_id'
-        );
+        return $this->hasMany(Complaint::class, 'assigned_to');
     }
 
     public function hasRoleCustom($role)
