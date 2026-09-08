@@ -2,31 +2,31 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use App\Models\Complaint;
 use App\Models\Category;
-use App\Models\Priority;
+use App\Models\Complaint;
 use App\Models\ComplaintHistory;
+use App\Models\Priority;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
+use Livewire\Component;
 
 class Dashboard extends Component
 {
-
     public $showCreateModal = false;
-
     public $title = '';
-
     public $description = '';
-
     public $category_id = '';
-
     public $priority_id = '';
 
-    public function openCreateModal()
+    public function openCreateModal(): void
     {
+        Gate::authorize('create', Complaint::class);
+
         $this->showCreateModal = true;
     }
 
-    public function closeCreateModal()
+    public function closeCreateModal(): void
     {
         $this->resetValidation();
 
@@ -40,52 +40,38 @@ class Dashboard extends Component
         $this->showCreateModal = false;
     }
 
-    public function saveComplaint()
+    public function saveComplaint(): void
     {
+        Gate::authorize('create', Complaint::class);
+
         $this->validate([
-
             'title' => 'required|min:5',
-
             'description' => 'required|min:10',
-
-            'category_id' => 'required',
-
-            'priority_id' => 'required',
-
+            'category_id' => 'required|exists:categories,id',
+            'priority_id' => 'required|exists:priorities,id',
         ]);
 
-        $complaint = Complaint::create([
+        DB::transaction(function (): void {
+            $complaint = Complaint::create([
+                'ticket_number' => 'CMP-' . Str::upper((string) Str::ulid()),
+                'reporter_id' => auth()->id(),
+                'category_id' => $this->category_id,
+                'priority_id' => $this->priority_id,
+                'title' => $this->title,
+                'description' => $this->description,
+                'status' => 'submitted',
+            ]);
 
-            'ticket_number' => 'CMP-' . now()->format('YmdHis'),
-
-            'reporter_id' => auth()->id(),
-
-            'category_id' => $this->category_id,
-
-            'priority_id' => $this->priority_id,
-
-            'title' => $this->title,
-
-            'description' => $this->description,
-
-            'status' => 'submitted',
-
-        ]);
-
-        ComplaintHistory::create([
-
-            'complaint_id' => $complaint->id,
-
-            'user_id' => auth()->id(),
-
-            'type' => 'created',
-
-            'description' => 'Complaint created',
-
-        ]);
+            ComplaintHistory::create([
+                'complaint_id' => $complaint->id,
+                'user_id' => auth()->id(),
+                'type' => 'created',
+                'description' => 'Complaint created',
+            ]);
+        });
 
         $this->dispatch('toast', [
-            'message' => 'Complaint created successfully.'
+            'message' => 'Complaint created successfully.',
         ]);
 
         $this->closeCreateModal();
@@ -93,51 +79,26 @@ class Dashboard extends Component
 
     public function render()
     {
+        Gate::authorize('viewAny', Complaint::class);
+
         $query = Complaint::query();
 
-        // Karyawan hanya melihat complaint miliknya sendiri.
-        if (
-
-            auth()->user()->roles
-            ->pluck('name')
-            ->contains(
-                fn($role) =>
-                trim(strtolower($role)) === 'karyawan'
-            )
-
-        ) {
-
+        if (auth()->user()->hasRole('karyawan')) {
             $query->where('reporter_id', auth()->id());
         }
 
         return view('livewire.dashboard', [
-
             'totalComplaints' => (clone $query)->count(),
-
-            'inProgress' => (clone $query)
-                ->where('status', 'in_progress')
-                ->count(),
-
-            'resolved' => (clone $query)
-                ->where('status', 'resolved')
-                ->count(),
-
+            'inProgress' => (clone $query)->where('status', 'in_progress')->count(),
+            'resolved' => (clone $query)->where('status', 'resolved')->count(),
             'critical' => (clone $query)
                 ->whereHas('priority', function ($query) {
-
                     $query->where('name', 'Critical');
                 })
                 ->count(),
-
-            'recentComplaints' => (clone $query)
-                ->latest()
-                ->take(5)
-                ->get(),
-
+            'recentComplaints' => (clone $query)->latest()->take(5)->get(),
             'categories' => Category::all(),
-
             'priorities' => Priority::all(),
-
         ])->layout('layouts.app');
     }
 }
