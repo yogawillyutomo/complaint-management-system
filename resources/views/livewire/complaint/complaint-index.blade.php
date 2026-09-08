@@ -16,8 +16,9 @@
 
             </div>
 
+            @can('create', \App\Models\Complaint::class)
             <button
-                wire:click="$set('showModal', true)"
+                wire:click="openCreateModal"
                 class="btn-primary flex items-center gap-2">
 
                 <x-heroicon-o-plus class="w-5 h-5" />
@@ -25,6 +26,7 @@
                 Create Complaint
 
             </button>
+            @endcan
 
         </div>
 
