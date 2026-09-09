@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Enums\FeedbackOutcome;
 use App\Models\Complaint;
 use App\Models\Priority;
 use App\Models\User;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Role;
 
 class UatReadinessService
@@ -30,12 +30,41 @@ class UatReadinessService
             'UAT_DEMO_PASSWORD is missing or shorter than 12 characters.'
         ));
 
+        $requiredTables = [
+            'users',
+            'roles',
+            'priorities',
+            'complaints',
+            'complaint_feedback',
+            'complaint_escalations',
+        ];
+
+        $missingTables = collect($requiredTables)
+            ->reject(fn (string $table): bool => Schema::hasTable($table))
+            ->values();
+
+        $checks->push($this->check(
+            'database.schema',
+            $missingTables->isEmpty(),
+            'Required UAT tables are present.',
+            'Missing required UAT tables: ' . $missingTables->implode(', ')
+        ));
+
+        if ($missingTables->isNotEmpty()) {
+            return $this->result($checks);
+        }
+
         $checks = $checks
             ->merge($this->roleChecks())
             ->merge($this->priorityChecks())
             ->merge($this->accountChecks())
             ->merge($this->scenarioChecks());
 
+        return $this->result($checks);
+    }
+
+    private function result(Collection $checks): array
+    {
         return [
             'ready' => $checks->every(
                 fn (array $check): bool => $check['status'] === 'PASS'
