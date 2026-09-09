@@ -9,6 +9,14 @@
     "rc-freeze-admin"
   ],
   "freeze_admin_label": "rc-freeze-admin",
+  "allowed_title_prefixes": [
+    "[rc-defect]",
+    "[rc-security]",
+    "[rc-test]",
+    "[rc-replace]",
+    "[rc-admin]"
+  ],
+  "freeze_admin_title_prefix": "[rc-admin]",
   "docs_only_prefixes": [
     "docs/"
   ],
