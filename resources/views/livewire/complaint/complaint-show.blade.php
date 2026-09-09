@@ -131,13 +131,7 @@
                 </button>
                 @endcan
 
-                @can('delete', $complaint)
-                <button
-                    wire:click="openDeleteModal"
-                    class="px-5 py-3 rounded-2xl bg-red-500 text-white hover:bg-red-600 transition">
-                    Delete
-                </button>
-                @endcan
+
 
             </div>
 
@@ -676,75 +670,6 @@
 
     @endif
 
-
-    @if($showDeleteModal)
-
-    <div
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-
-        <div
-            class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
-
-            {{-- Header --}}
-            <div class="p-8 text-center">
-
-                <div class="w-20 h-20 mx-auto rounded-full bg-red-100 flex items-center justify-center mb-5">
-
-                    <x-heroicon-o-trash class="w-10 h-10 text-red-500" />
-
-                </div>
-
-                <h2 class="text-2xl font-bold text-slate2-900">
-                    Delete Complaint
-                </h2>
-
-                <p class="text-slate2-500 mt-3 leading-relaxed">
-                    Are you sure you want to delete this complaint?
-                    This action cannot be undone.
-                </p>
-
-            </div>
-
-            {{-- Footer --}}
-            <div class="flex items-center justify-center gap-4 px-8 py-6 border-t border-surface-100 bg-surface-50">
-
-                <button
-                    wire:click="closeDeleteModal"
-                    class="px-5 py-3 rounded-2xl border border-surface-200 bg-white hover:bg-surface-100 transition">
-
-                    Cancel
-                </button>
-
-
-                <button
-                    wire:click="deleteComplaint"
-                    wire:loading.attr="disabled"
-                    wire:target="deleteComplaint"
-                    class="px-5 py-3 rounded-2xl bg-red-500 text-white hover:bg-red-600 transition">
-
-                    <span
-                        wire:loading.remove
-                        wire:target="deleteComplaint">
-
-                        Delete
-                    </span>
-
-                    <span
-                        wire:loading
-                        wire:target="deleteComplaint">
-
-                        Deleting...
-                    </span>
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    @endif
 
     @if($showAssignModal)
 
