@@ -32,9 +32,10 @@ class ReleaseFreezePolicy
         foreach ($changes as $change) {
             $status = strtoupper((string) ($change['status'] ?? ''));
             $path = (string) ($change['path'] ?? '');
+            $oldPath = (string) ($change['old_path'] ?? '');
 
             if (
-                $path === $freezeConfigPath
+                ($path === $freezeConfigPath || $oldPath === $freezeConfigPath)
                 && ! in_array(
                     strtolower((string) ($config['freeze_admin_label'] ?? 'rc-freeze-admin')),
                     $normalizedLabels,
@@ -49,7 +50,10 @@ class ReleaseFreezePolicy
             }
 
             if (
-                str_starts_with($path, 'database/migrations/')
+                (
+                    str_starts_with($path, 'database/migrations/')
+                    || str_starts_with($oldPath, 'database/migrations/')
+                )
                 && in_array($status, ['M', 'D', 'R'], true)
             ) {
                 return $this->result(
