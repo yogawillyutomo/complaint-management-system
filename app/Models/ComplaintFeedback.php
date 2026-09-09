@@ -47,6 +47,24 @@ class ComplaintFeedback extends Model
                 );
             }
         });
+
+        static::updating(function (ComplaintFeedback $feedback): void {
+            $immutableFields = [
+                'complaint_id',
+                'submitted_by',
+                'outcome',
+                'satisfaction_rating',
+                'comment',
+            ];
+
+            foreach ($immutableFields as $field) {
+                if ($feedback->isDirty($field)) {
+                    throw new InvalidArgumentException(
+                        'Submitted complaint feedback cannot be rewritten.'
+                    );
+                }
+            }
+        });
     }
 
     public function complaint()
