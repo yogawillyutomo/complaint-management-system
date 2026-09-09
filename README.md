@@ -266,7 +266,8 @@ The project has completed the following implementation tranches:
 - P8 — Operational & Security Hardening
 - P9 — UAT & Release Validation
 - P10 — Release Evidence & Thesis Traceability
-- P11 — UAT Readiness & Operator Support (current tranche)
+- P11 — UAT Readiness & Operator Support
+- P12 — Release Candidate Freeze Enforcement (current tranche)
 
 ## Thesis / Research Note
 
@@ -277,3 +278,10 @@ Interview findings can support requirements and discussion, but should not be us
 - inferential statistical validity for qualitative interview coding;
 - system effectiveness before UAT/observational evidence;
 - identical-case recurrence from the recurrence proxy.
+
+
+## Release Candidate Freeze Guard
+
+The repository includes a dormant CI release-candidate freeze guard in `.github/rc-freeze.json`.
+
+It remains `active=false` until manual UAT is deliberately started. Once activated on `main`, non-documentation PRs require an approved RC reason label or title prefix, and historical migration rewrites are blocked. See [Release Candidate Freeze Policy](docs/uat/RELEASE_CANDIDATE_FREEZE.md).
