@@ -20,6 +20,36 @@ class ComplaintNotificationService
         );
     }
 
+    public function notifyReporterValidated(Complaint $complaint): void
+    {
+        if (! $complaint->reporter?->is_active) {
+            return;
+        }
+
+        $this->notifyUser(
+            $complaint->reporter,
+            $complaint,
+            'complaint_validated',
+            'Complaint validated',
+            "{$complaint->ticket_number} passed supervisor validation."
+        );
+    }
+
+    public function notifyReporterRejected(Complaint $complaint): void
+    {
+        if (! $complaint->reporter?->is_active) {
+            return;
+        }
+
+        $this->notifyUser(
+            $complaint->reporter,
+            $complaint,
+            'complaint_rejected',
+            'Complaint rejected',
+            "{$complaint->ticket_number} was rejected during supervisor validation."
+        );
+    }
+
     public function notifyAssignment(Complaint $complaint): void
     {
         if (! $complaint->handler?->is_active) {
