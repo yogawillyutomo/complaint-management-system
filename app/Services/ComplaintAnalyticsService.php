@@ -86,6 +86,42 @@ class ComplaintAnalyticsService
                 && now()->gt($complaint->resolution_due_at))
             ->count();
 
+        $feedbackEligible = $complaints
+            ->filter(fn (Complaint $complaint) => ! is_null($complaint->resolved_at));
+
+        $feedbacks = $feedbackEligible
+            ->pluck('feedback')
+            ->filter();
+
+        $feedbackCoverageRate = $feedbackEligible->isNotEmpty()
+            ? round(($feedbacks->count() / $feedbackEligible->count()) * 100, 1)
+            : null;
+
+        $averageSatisfaction = $feedbacks->isNotEmpty()
+            ? round($feedbacks->avg('satisfaction_rating'), 2)
+            : null;
+
+        $acceptedFeedback = $feedbacks
+            ->where('outcome', 'accepted')
+            ->count();
+
+        $needsFollowUpFeedback = $feedbacks
+            ->where('outcome', 'needs_follow_up');
+
+        $addressedFeedback = $needsFollowUpFeedback
+            ->filter(fn ($feedback) => ! is_null($feedback->addressed_at))
+            ->count();
+
+        $pendingFeedback = $needsFollowUpFeedback
+            ->filter(fn ($feedback) => is_null($feedback->addressed_at))
+            ->count();
+
+        $closedWithoutFeedback = $complaints
+            ->filter(fn (Complaint $complaint) => $complaint->status === 'closed'
+                && is_null($complaint->feedback)
+                && filled($complaint->closed_without_feedback_reason))
+            ->count();
+
         $escalations = $complaints
             ->flatMap(fn (Complaint $complaint) => $complaint->escalations);
 
@@ -141,6 +177,17 @@ class ComplaintAnalyticsService
                 'avgFirstResponseMinutes' => $avgFirstResponseMinutes,
                 'avgResolutionMinutes' => $avgResolutionMinutes,
             ],
+            'feedback' => [
+                'eligibleComplaints' => $feedbackEligible->count(),
+                'submitted' => $feedbacks->count(),
+                'coverageRate' => $feedbackCoverageRate,
+                'averageSatisfaction' => $averageSatisfaction,
+                'accepted' => $acceptedFeedback,
+                'needsFollowUp' => $needsFollowUpFeedback->count(),
+                'addressed' => $addressedFeedback,
+                'pending' => $pendingFeedback,
+                'closedWithoutFeedback' => $closedWithoutFeedback,
+            ],
             'escalations' => [
                 'total' => $escalations->count(),
                 'active' => $escalations->where('status', 'active')->count(),
@@ -181,6 +228,11 @@ class ComplaintAnalyticsService
                     'active_escalation' => $complaint->escalations->contains(
                         fn ($escalation) => $escalation->status === 'active'
                     ) ? 'yes' : 'no',
+                    'feedback_outcome' => $complaint->feedback?->outcome,
+                    'feedback_rating' => $complaint->feedback?->satisfaction_rating,
+                    'feedback_comment' => $complaint->feedback?->comment,
+                    'feedback_addressed_at' => $complaint->feedback?->addressed_at?->format('Y-m-d H:i:s'),
+                    'closed_without_feedback_reason' => $complaint->closed_without_feedback_reason,
                 ];
             });
     }
@@ -194,6 +246,7 @@ class ComplaintAnalyticsService
                 'reporter',
                 'handler',
                 'escalations',
+                'feedback',
             ])
             ->whereBetween('created_at', [
                 $from->copy()->startOfDay(),
