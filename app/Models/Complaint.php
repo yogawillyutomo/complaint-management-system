@@ -38,6 +38,7 @@ class Complaint extends Model
         'priority_id',
         'title',
         'description',
+        'root_cause_category',
         'root_cause',
         'resolution_summary',
         'resolution_evidence',
