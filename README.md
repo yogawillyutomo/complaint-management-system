@@ -1,258 +1,257 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
-
-## About Laravel
-
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
-```
-
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-
-
 # Complaint Management System
 
-Web-based Complaint Management System built using Laravel and Livewire for managing employee complaints, workflow tracking, role-based access control (RBAC), and operational analytics.
+Web-based employee complaint handling system built with Laravel and Livewire.
 
----
+The application supports role-based complaint intake, validation, HRD handling, root-cause analysis, escalation, SLA monitoring, employee feedback, Action Center work queues, notifications, and management reporting.
 
-## 🚀 Features
+## Roles
 
-### Authentication & Security
-- Login & Logout
-- Role-Based Access Control (RBAC)
-- Ownership Protection
-- Protected Complaint Access
+- **Karyawan** — submits complaints, provides additional input, reviews resolutions, submits resolution feedback.
+- **Supervisor** — validates/rejects submitted complaints and assigns active HRD handlers.
+- **HRD** — handles assigned complaints, requests input, records root cause/resolution, performs follow-up, and escalates when needed.
+- **Pimpinan** — resolves targeted leadership escalations and reviews management-level conditions.
+- **Admin** — user/account administration and global system oversight.
 
-### Complaint Management
-- Create Complaint
-- Edit Complaint
-- Delete Complaint
-- Complaint Detail View
-- Complaint Timeline
-- Complaint History Tracking
+## Complaint Workflow
 
-### Workflow System
-- Submitted
-- Validated
-- Assigned
-- In Progress
-- Waiting Input
-- Resolved
-- Closed
-- Rejected
-- Escalated
+Primary workflow:
 
-### Roles
-- Employee
-- Supervisor
-- HR / Handler
-- Pimpinan / Management
-- Admin
+```text
+submitted
+  ├─> rejected
+  └─> validated
+        └─> assigned
+              └─> in_progress
+                    ├─> waiting_input
+                    │     └─> in_progress
+                    ├─> active escalation
+                    │     └─> escalation resolved
+                    └─> resolved
+                          ├─> post-resolution follow-up
+                          ├─> employee feedback
+                          └─> closed
+```
 
-### Dashboard
-- Complaint Statistics
-- Recent Complaints
-- Role-Aware Dashboard
-- Priority Statistics
-- Status Monitoring
+Important workflow rules:
+- only Karyawan can create a complaint;
+- Karyawan can only view their own complaints;
+- only active HRD users can be assigned;
+- only the assigned HRD can perform HRD processing actions;
+- active escalation blocks resolution/closure;
+- required follow-up blocks closure until completed;
+- employee `Needs Follow-up` feedback blocks closure until HRD addresses it;
+- closing without employee feedback requires a written reason;
+- complaint hard-delete is disabled;
+- complaint audit history is append-only.
 
-### Advanced Table
-- Search
-- Filter Status
-- Filter Priority
-- Sorting
-- Pagination
+## Implemented Capabilities
 
----
+### Security and Account Lifecycle
+- login/logout;
+- public registration disabled;
+- role-based authorization;
+- employee ownership isolation;
+- active/inactive account lifecycle;
+- inactive-session termination;
+- last-active-admin safeguards;
+- login and mutation rate limiting;
+- browser security headers;
+- Composer and npm security audit gates.
 
-## 🛠️ Tech Stack
+### Complaint Handling
+- complaint creation and unique ticket numbers;
+- validation/rejection;
+- HRD assignment;
+- in-progress handling;
+- waiting for employee input;
+- comments/discussion;
+- structured root-cause category;
+- root-cause narrative;
+- resolution summary/evidence;
+- post-resolution monitoring/follow-up.
 
-- Laravel
-- Livewire
-- TailwindCSS
+### SLA and Escalation
+Priority-configurable response/resolution targets with complaint-level deadline snapshots.
+
+Initial operational defaults:
+
+| Priority | Response | Resolution |
+|---|---:|---:|
+| Low | 480 min | 4320 min |
+| Medium | 240 min | 2880 min |
+| High | 120 min | 1440 min |
+| Critical | 30 min | 480 min |
+
+These values are configurable operational defaults, not fixed values derived from interview evidence.
+
+Escalation supports:
+- authority limit;
+- SLA risk/breach;
+- resource constraint;
+- policy/system constraint;
+- other;
+- leadership or higher-authority escalation;
+- one active escalation per complaint;
+- explicit escalation resolution evidence.
+
+### Employee Feedback
+After resolution, the reporter can submit one immutable feedback record:
+- Resolution Accepted;
+- Needs Follow-up;
+- satisfaction rating 1–5;
+- optional comment, with explanation required for Needs Follow-up.
+
+### Action Center and Notifications
+- role-scoped Action Center derived from current complaint state;
+- database in-app notifications;
+- unread/read state;
+- mark one/all read;
+- deep links to complaint detail;
+- notification state does not replace source-of-truth Action Center state.
+
+### Management Reporting
+- complaint trend;
+- category/root-cause distribution;
+- response/resolution SLA compliance;
+- response/resolution overdue;
+- MTTA/MTTR;
+- escalation metrics;
+- PIC/HRD workload and performance;
+- employee feedback coverage/satisfaction;
+- recurrence proxy;
+- CSV export.
+
+The recurrence value is explicitly a management proxy based on repeated root-cause categories. It does not prove that individual incidents are identical recurrences.
+
+## Data Integrity
+
+- forward-only migrations;
+- SQLite and MySQL regression coverage;
+- complaint reporter/category/priority retention safeguards;
+- account deactivation instead of destructive user deletion;
+- append-only complaint history;
+- submitted employee feedback immutable;
+- old read notifications can be pruned while unread notifications are retained;
+- operational indexes support SLA, Action Center, escalation, and timeline queries.
+
+## Tech Stack
+
+- PHP 8.3+
+- Laravel 13
+- Livewire 3
+- Blade
+- Tailwind CSS
 - Alpine.js
-- MySQL
-- ApexCharts
+- Vite
+- MySQL 8.4 production-parity test target
+- SQLite automated test matrix
 
----
-
-## 📦 Installation
-
-### Clone Repository
+## Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/complaint-management-system.git
-```
-
----
-
-### Enter Project
-
-```bash
+git clone https://github.com/yogawillyutomo/complaint-management-system.git
 cd complaint-management-system
-```
 
----
-
-### Install Dependencies
-
-```bash
 composer install
-npm install
-```
+npm ci
 
----
-
-### Setup Environment
-
-Copy `.env.example`
-
-```bash
 cp .env.example .env
-```
-
-Windows:
-
-```bash
-copy .env.example .env
-```
-
----
-
-### Generate App Key
-
-```bash
 php artisan key:generate
 ```
 
----
-
-### Configure Database
-
-Edit `.env`
-
-```env
-DB_DATABASE=complaint_system
-DB_USERNAME=root
-DB_PASSWORD=
-```
-
----
-
-### Run Migration
+Configure the database in `.env`, then:
 
 ```bash
-php artisan migrate
+php artisan migrate --seed
+npm run build
 ```
 
-Optional Seeder:
+Normal seeding creates reference data only:
+- roles;
+- categories;
+- priorities/SLA targets.
 
-```bash
-php artisan db:seed
-```
+It does **not** create login accounts.
 
----
-
-### Run Frontend
+For development:
 
 ```bash
 npm run dev
-```
-
----
-
-### Run Laravel Server
-
-```bash
 php artisan serve
 ```
 
----
+## Testing
 
-## 🔐 Default Roles
+Full default suite:
 
-- Admin
-- Supervisor
-- HR
-- Employee
-- Pimpinan
+```bash
+php artisan test
+```
 
----
+Dedicated UAT automation:
 
-## 📊 Current System Status
+```bash
+php artisan test tests/Feature/Uat
+```
 
-✅ Authentication  
-✅ RBAC  
-✅ Complaint Workflow  
-✅ Timeline Activity  
-✅ Dashboard Analytics  
-✅ Role-Based Data Isolation  
-✅ Complaint Filtering & Sorting  
+CI gates include:
+- SQLite / PHP 8.3;
+- SQLite / PHP 8.4;
+- SQLite / PHP 8.5;
+- MySQL 8.4 / PHP 8.3;
+- frontend build;
+- Composer security audit;
+- npm high-severity security audit.
 
----
+## UAT
 
-## 📌 Future Development
+UAT documentation:
+- [UAT Plan](docs/uat/UAT_PLAN.md)
+- [UAT Scenario Matrix](docs/uat/UAT_SCENARIOS.md)
+- [Release Candidate Checklist](docs/uat/RELEASE_CANDIDATE_CHECKLIST.md)
+- [Thesis Synchronization Matrix](docs/uat/THESIS_SYNC_MATRIX.md)
 
-- Export Excel/PDF
-- SLA Monitoring
-- Notification System
-- Email Integration
-- File Attachments
-- KPI Dashboard
-- Escalation Approval
-- Real-time Notification
+Controlled UAT fixtures are opt-in and non-production only.
 
----
+Set `UAT_DEMO_PASSWORD` to at least 12 characters, then run:
 
-## 👨‍💻 Developer
+```bash
+php artisan db:seed --class='Database\Seeders\UatScenarioSeeder'
+```
 
-Developed as part of a thesis/research project for employee complaint management system implementation.
+The UAT seeder refuses to run in production.
+
+## Notification Maintenance
+
+Old read notifications can be pruned with:
+
+```bash
+php artisan notifications:prune --days=90
+```
+
+A daily scheduled prune is registered. Unread notifications are not deleted by this command.
+
+## Development Status
+
+The project has completed the following implementation tranches:
+
+- P0 — Security & Workflow
+- P1 — Data Retention & Account Lifecycle
+- P2 — Database Integrity & MySQL Parity
+- P3 — Root Cause, Resolution & Follow-up
+- P4 — SLA, Escalation & Monitoring
+- P5 — Reporting & Management Insight
+- P6 — Employee Feedback & Resolution Confirmation
+- P7 — Action Center & In-App Notifications
+- P8 — Operational & Security Hardening
+- P9 — UAT & Release Validation (current tranche)
+
+## Thesis / Research Note
+
+Implementation claims should be synchronized with the repository and final UAT evidence.
+
+Interview findings can support requirements and discussion, but should not be used to claim:
+- fixed SLA minute values unless separately approved as policy;
+- inferential statistical validity for qualitative interview coding;
+- system effectiveness before UAT/observational evidence;
+- identical-case recurrence from the recurrence proxy.
