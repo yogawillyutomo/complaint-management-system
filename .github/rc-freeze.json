@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "active": false,
+  "allowed_change_labels": [
+    "rc-defect-fix",
+    "rc-security-fix",
+    "rc-test-fix",
+    "rc-candidate-replace"
+  ],
+  "freeze_admin_label": "rc-freeze-admin",
+  "docs_only_prefixes": [
+    "docs/"
+  ],
+  "docs_only_files": [
+    "README.md"
+  ],
+  "freeze_config_path": ".github/rc-freeze.json"
+}
