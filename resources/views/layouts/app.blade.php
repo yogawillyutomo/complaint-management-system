@@ -71,13 +71,15 @@
                 </a>
                 @endif
 
-                <a href="#"
-                    class="sidebar-item">
+                @if(auth()->user()->hasAnyRole(['admin', 'supervisor', 'hrd', 'pimpinan']))
+                <a href="{{ route('reports.index') }}"
+                    class="sidebar-item {{ request()->routeIs('reports.*') ? 'sidebar-item-active' : '' }}">
 
                     <x-heroicon-o-chart-bar class="w-5 h-5" />
 
                     <span>Reports</span>
                 </a>
+                @endif
 
 
             </nav>
