@@ -9,7 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('complaints', function (Blueprint $table) {
-            $table->text('root_cause')->nullable()->after('description');
+            $table->string('root_cause_category', 64)->nullable()->index()->after('description');
+            $table->text('root_cause')->nullable()->after('root_cause_category');
             $table->text('resolution_summary')->nullable()->after('root_cause');
             $table->text('resolution_evidence')->nullable()->after('resolution_summary');
             $table->boolean('follow_up_required')->default(false)->after('resolution_evidence');
@@ -23,6 +24,7 @@ return new class extends Migration
     {
         Schema::table('complaints', function (Blueprint $table) {
             $table->dropColumn([
+                'root_cause_category',
                 'root_cause',
                 'resolution_summary',
                 'resolution_evidence',
