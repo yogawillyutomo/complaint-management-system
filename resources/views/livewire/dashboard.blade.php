@@ -301,6 +301,7 @@
     {{-- Quick Actions --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
 
+        @can('create', \App\Models\Complaint::class)
         {{-- Create Complaint --}}
         <button
             wire:click="openCreateModal"
@@ -329,6 +330,7 @@
             </div>
 
         </button>
+        @endcan
 
         {{-- View Complaints --}}
         <a

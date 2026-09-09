@@ -66,154 +66,78 @@
                     Back
                 </a>
 
-                {{-- Supervisor Validate --}}
-                @if(
-
-                auth()->user()->roles
-                ->pluck('name')
-                ->contains(
-                fn($role) =>
-                trim(strtolower($role)) === 'supervisor'
-                )
-
-                && $complaint->status === 'submitted'
-
-                )
-
+                @can('validateComplaint', $complaint)
                 <button
                     wire:click="validateComplaint"
                     class="px-5 py-3 rounded-2xl bg-emerald-500 text-white hover:bg-emerald-600 transition">
-
                     Validate
-
                 </button>
+                @endcan
 
+                @can('rejectComplaint', $complaint)
                 <button
                     wire:click="rejectComplaint"
                     class="px-5 py-3 rounded-2xl bg-red-500 text-white hover:bg-red-600 transition">
-
                     Reject
-
                 </button>
+                @endcan
 
-                @endif
-
-
-
-                @if(
-
-                auth()->user()->roles
-                ->pluck('name')
-                ->contains(
-                fn($role) =>
-                trim(strtolower($role)) === 'supervisor'
-                )
-
-                && $complaint->status === 'validated'
-
-                )
-
+                @can('assignHandler', $complaint)
                 <button
                     wire:click="openAssignModal"
                     class="px-5 py-3 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-700 transition">
-
                     Assign Handler
-
                 </button>
+                @endcan
 
-                @endif
-
-                {{-- HR Workflow --}}
-                @if(
-
-                auth()->user()->roles
-                ->pluck('name')
-                ->contains(
-                fn($role) =>
-                trim(strtolower($role)) === 'hr'
-                )
-
-                && $complaint->assigned_to === auth()->id()
-
-                )
-
-                {{-- Start Progress --}}
-                @if($complaint->status === 'assigned')
-
+                @can('startProgress', $complaint)
                 <button
                     wire:click="startProgress"
                     class="px-5 py-3 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 transition">
-
                     Start Progress
-
                 </button>
+                @endcan
 
-                @endif
-
-                {{-- Waiting Input --}}
-                @if($complaint->status === 'in_progress')
-
+                @can('requestInput', $complaint)
                 <button
                     wire:click="waitingInput"
                     class="px-5 py-3 rounded-2xl bg-orange-500 text-white hover:bg-orange-600 transition">
-
                     Waiting Input
-
                 </button>
+                @endcan
 
+                @can('resolveComplaint', $complaint)
                 <button
                     wire:click="resolveComplaint"
                     class="px-5 py-3 rounded-2xl bg-green-600 text-white hover:bg-green-700 transition">
-
                     Resolve
-
                 </button>
+                @endcan
 
-                @endif
-
-                {{-- Close --}}
-                @if($complaint->status === 'resolved')
-
+                @can('closeComplaint', $complaint)
                 <button
                     wire:click="closeComplaint"
                     class="px-5 py-3 rounded-2xl bg-slate-700 text-white hover:bg-slate-800 transition">
-
                     Close Complaint
-
                 </button>
+                @endcan
 
-                @endif
-
-                @if(
-
-                auth()->user()->hasRole('admin')
-
-                || auth()->user()->hasRole('hrd')
-
-                || auth()->id() === $complaint->reporter_id
-
-                )
-
+                @can('update', $complaint)
                 <button
                     type="button"
                     wire:click="openEditModal"
                     class="px-5 py-3 rounded-2xl bg-brand-600 text-white hover:bg-brand-700 transition">
-
                     Edit Complaint
                 </button>
+                @endcan
 
-                @endif
-
-                @endif
-
-                @if(auth()->user()->hasRole('admin'))
+                @can('delete', $complaint)
                 <button
                     wire:click="openDeleteModal"
                     class="px-5 py-3 rounded-2xl bg-red-500 text-white hover:bg-red-600 transition">
-
                     Delete
                 </button>
-                @endif
+                @endcan
 
             </div>
 
@@ -485,157 +409,6 @@
 
             {{-- Right --}}
             <div class="space-y-6">
-
-                {{-- Status --}}
-                @if(
-                auth()->user()->hasRole('admin') ||
-                auth()->user()->hasRole('hrd')
-                )
-                <div class="card p-6">
-
-                    <div class="flex items-center justify-between mb-4">
-
-                        <h3 class="font-semibold text-slate2-900">
-                            Status
-                        </h3>
-
-                        <span class="
-                        px-3 py-1 rounded-full text-xs font-semibold
-
-                            @if($complaint->status === 'submitted')
-                                bg-yellow-100 text-yellow-700
-
-                            @elseif($complaint->status === 'validated')
-                                bg-sky-100 text-sky-700
-
-                            @elseif($complaint->status === 'assigned')
-                                bg-indigo-100 text-indigo-700
-
-                            @elseif($complaint->status === 'in_progress')
-                                bg-blue-100 text-blue-700
-
-                            @elseif($complaint->status === 'waiting_input')
-                                bg-orange-100 text-orange-700
-
-                            @elseif($complaint->status === 'resolved')
-                                bg-green-100 text-green-700
-
-                            @elseif($complaint->status === 'closed')
-                                bg-slate-200 text-slate-700
-
-                            @elseif($complaint->status === 'rejected')
-                                bg-red-100 text-red-700
-
-                            @elseif($complaint->status === 'escalated')
-                                bg-purple-100 text-purple-700
-
-                            @endif
-                        ">
-                            {{ ucwords(str_replace('_', ' ', $complaint->status)) }}
-                        </span>
-
-                    </div>
-
-                    <div class="space-y-4">
-
-                        <div class="relative">
-
-                            <select
-                                wire:model.live="status"
-                                style="background-image: none;"
-                                class="
-                                w-full
-                                appearance-none
-                                rounded-2xl
-                                border
-                                border-surface-200
-                                bg-white
-                                px-4
-                                py-3
-                                pr-12
-                                text-sm
-                                font-medium
-                                text-slate2-800
-                                shadow-sm
-                                transition
-                                cursor-pointer
-                                focus:outline-none
-                                focus:border-brand-500
-                                focus:ring-4
-                                focus:ring-brand-100
-                            ">
-
-                                <option value="submitted">
-                                    Submitted
-                                </option>
-
-                                <option value="validated">
-                                    Validated
-                                </option>
-
-                                <option value="assigned">
-                                    Assigned
-                                </option>
-
-                                <option value="in_progress">
-                                    In Progress
-                                </option>
-
-                                <option value="waiting_input">
-                                    Waiting Input
-                                </option>
-
-                                <option value="resolved">
-                                    Resolved
-                                </option>
-
-                                <option value="closed">
-                                    Closed
-                                </option>
-
-                                <option value="rejected">
-                                    Rejected
-                                </option>
-
-                                <option value="escalated">
-                                    Escalated
-                                </option>
-                            </select>
-
-                            <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-
-                                <x-heroicon-o-chevron-down class="w-5 h-5 text-slate2-400" />
-
-                            </div>
-
-                        </div>
-
-                        <button
-                            wire:click="updateStatus"
-                            wire:loading.attr="disabled"
-                            wire:target="updateStatus"
-                            class="w-full px-4 py-3 rounded-2xl bg-brand-600 text-white font-medium hover:bg-brand-700 transition">
-
-                            <span
-                                wire:loading.remove
-                                wire:target="updateStatus">
-
-                                Update Status
-                            </span>
-
-                            <span
-                                wire:loading
-                                wire:target="updateStatus">
-
-                                Updating...
-                            </span>
-
-                        </button>
-
-                    </div>
-
-                </div>
-                @endif
 
                 {{-- Information --}}
                 <div class="card p-6">

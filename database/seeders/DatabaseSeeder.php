@@ -18,6 +18,11 @@ class DatabaseSeeder extends Seeder
         $this->call(CategorySeeder::class);
         $this->call(PrioritySeeder::class);
 
+        // Demo accounts use known credentials and must never be provisioned in production.
+        if (app()->environment('production')) {
+            return;
+        }
+
         $users = [
             ['name' => 'Admin', 'email' => 'admin@gmail.com', 'role' => 'admin'],
             ['name' => 'Karyawan Demo', 'email' => 'karyawan@gmail.com', 'role' => 'karyawan'],

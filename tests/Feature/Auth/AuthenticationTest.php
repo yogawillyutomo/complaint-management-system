@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -57,6 +58,13 @@ class AuthenticationTest extends TestCase
     public function test_navigation_menu_can_be_rendered(): void
     {
         $user = User::factory()->create();
+
+        Role::firstOrCreate([
+            'name' => 'karyawan',
+            'guard_name' => 'web',
+        ]);
+
+        $user->assignRole('karyawan');
 
         $this->actingAs($user);
 
