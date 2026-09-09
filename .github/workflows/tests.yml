@@ -17,14 +17,10 @@ jobs:
   security-audit:
     runs-on: ubuntu-latest
     name: Dependency Security Audit
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-        with:
-          ref: fix/p8-operational-security-hardening
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -48,19 +44,8 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Resolve and persist npm security lock refresh
-        run: |
-          npm audit fix --package-lock-only
-
-          if git diff --quiet -- package-lock.json package.json; then
-            echo "npm dependency lock already current."
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package-lock.json package.json
-            git commit -m "security: refresh npm dependency lock"
-            git push origin HEAD:fix/p8-operational-security-hardening
-          fi
+      - name: Audit npm lock
+        run: npm audit --audit-level=high
 
   sqlite:
     runs-on: ubuntu-latest
