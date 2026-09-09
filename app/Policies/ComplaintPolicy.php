@@ -73,16 +73,34 @@ class ComplaintPolicy
             && $complaint->status === 'in_progress';
     }
 
+    public function updateResolution(User $user, Complaint $complaint): bool
+    {
+        return $this->isAssignedHrd($user, $complaint)
+            && in_array($complaint->status, ['in_progress', 'waiting_input'], true);
+    }
+
     public function resolveComplaint(User $user, Complaint $complaint): bool
     {
         return $this->isAssignedHrd($user, $complaint)
             && $complaint->status === 'in_progress';
     }
 
-    public function closeComplaint(User $user, Complaint $complaint): bool
+    public function completeFollowUp(User $user, Complaint $complaint): bool
     {
         return $this->isAssignedHrd($user, $complaint)
-            && $complaint->status === 'resolved';
+            && $complaint->status === 'resolved'
+            && $complaint->follow_up_required
+            && is_null($complaint->follow_up_completed_at);
+    }
+
+    public function closeComplaint(User $user, Complaint $complaint): bool
+    {
+        if (! $this->isAssignedHrd($user, $complaint) || $complaint->status !== 'resolved') {
+            return false;
+        }
+
+        return ! $complaint->follow_up_required
+            || ! is_null($complaint->follow_up_completed_at);
     }
 
     public function comment(User $user, Complaint $complaint): bool
