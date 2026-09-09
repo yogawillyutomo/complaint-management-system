@@ -14,6 +14,39 @@ permissions:
   contents: read
 
 jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    name: Dependency Security Audit
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          extensions: dom, curl, libxml, mbstring, zip, pcntl
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Audit Composer lock
+        run: composer audit --locked --no-interaction --abandoned=report
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Audit npm lock
+        run: npm audit --audit-level=high
+
   sqlite:
     runs-on: ubuntu-latest
 

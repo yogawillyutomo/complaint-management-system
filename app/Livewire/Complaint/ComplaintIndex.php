@@ -7,6 +7,7 @@ use App\Models\Complaint;
 use App\Models\ComplaintHistory;
 use App\Models\Priority;
 use App\Services\ComplaintNotificationService;
+use App\Services\MutationRateLimiter;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -37,6 +38,9 @@ class ComplaintIndex extends Component
     public function save(): void
     {
         Gate::authorize('create', Complaint::class);
+
+        app(MutationRateLimiter::class)
+            ->consume('complaint-create', 10);
 
         $this->validate([
             'title' => 'required|min:5',
