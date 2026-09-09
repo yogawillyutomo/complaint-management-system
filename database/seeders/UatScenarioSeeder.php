@@ -40,13 +40,8 @@ class UatScenarioSeeder extends Seeder
             PrioritySeeder::class,
         ]);
 
-        $users = collect([
-            'admin' => ['name' => 'UAT Admin', 'email' => 'uat.admin@example.test'],
-            'karyawan' => ['name' => 'UAT Employee', 'email' => 'uat.employee@example.test'],
-            'supervisor' => ['name' => 'UAT Supervisor', 'email' => 'uat.supervisor@example.test'],
-            'hrd' => ['name' => 'UAT HRD', 'email' => 'uat.hrd@example.test'],
-            'pimpinan' => ['name' => 'UAT Pimpinan', 'email' => 'uat.pimpinan@example.test'],
-        ])->map(function (array $data, string $role) use ($password): User {
+        $users = collect(config('uat.accounts'))
+            ->map(function (array $data, string $role) use ($password): User {
             $user = User::updateOrCreate(
                 ['email' => $data['email']],
                 [
@@ -74,7 +69,7 @@ class UatScenarioSeeder extends Seeder
         $pimpinan = $users['pimpinan'];
 
         $submitted = $this->complaint(
-            'UAT-SUBMITTED-001',
+            config('uat.scenarios.submitted.ticket'),
             $employee,
             $category,
             $priority,
@@ -82,7 +77,7 @@ class UatScenarioSeeder extends Seeder
         );
 
         $assigned = $this->complaint(
-            'UAT-ASSIGNED-001',
+            config('uat.scenarios.assigned.ticket'),
             $employee,
             $category,
             $priority,
@@ -91,7 +86,7 @@ class UatScenarioSeeder extends Seeder
         );
 
         $waitingInput = $this->complaint(
-            'UAT-WAITING-INPUT-001',
+            config('uat.scenarios.waiting_input.ticket'),
             $employee,
             $category,
             $priority,
@@ -100,7 +95,7 @@ class UatScenarioSeeder extends Seeder
         );
 
         $resolved = $this->complaint(
-            'UAT-RESOLVED-FEEDBACK-001',
+            config('uat.scenarios.resolved_feedback.ticket'),
             $employee,
             $category,
             $priority,
@@ -125,7 +120,7 @@ class UatScenarioSeeder extends Seeder
         );
 
         $escalated = $this->complaint(
-            'UAT-ESCALATED-001',
+            config('uat.scenarios.escalated.ticket'),
             $employee,
             $category,
             $priority,

@@ -217,7 +217,10 @@ The manifest intentionally excludes secrets and records manual UAT as `NOT_RUN` 
 UAT documentation:
 - [UAT Plan](docs/uat/UAT_PLAN.md)
 - [UAT Scenario Matrix](docs/uat/UAT_SCENARIOS.md)
+- [UAT Operator Runbook](docs/uat/UAT_OPERATOR_RUNBOOK.md)
+- [UAT Execution Record](docs/uat/UAT_EXECUTION_RECORD.md)
 - [Release Candidate Checklist](docs/uat/RELEASE_CANDIDATE_CHECKLIST.md)
+- [Release Candidate Freeze Policy](docs/uat/RELEASE_CANDIDATE_FREEZE.md)
 - [Thesis Synchronization Matrix](docs/uat/THESIS_SYNC_MATRIX.md)
 
 Controlled UAT fixtures are opt-in and non-production only.
@@ -229,6 +232,14 @@ php artisan db:seed --class='Database\Seeders\UatScenarioSeeder'
 ```
 
 The UAT seeder refuses to run in production.
+
+After controlled UAT seeding, verify the environment before browser testing:
+
+```bash
+php artisan uat:readiness
+```
+
+The readiness command is read-only. It does not migrate, seed, reset, or repair UAT data.
 
 ## Notification Maintenance
 
@@ -254,7 +265,8 @@ The project has completed the following implementation tranches:
 - P7 — Action Center & In-App Notifications
 - P8 — Operational & Security Hardening
 - P9 — UAT & Release Validation
-- P10 — Release Evidence & Thesis Traceability (current tranche)
+- P10 — Release Evidence & Thesis Traceability
+- P11 — UAT Readiness & Operator Support (current tranche)
 
 ## Thesis / Research Note
 
