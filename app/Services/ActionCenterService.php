@@ -34,10 +34,16 @@ class ActionCenterService
 
         return $items
             ->unique('key')
-            ->sortBy([
-                fn (array $a, array $b) => $this->urgencyWeight($b['urgency']) <=> $this->urgencyWeight($a['urgency']),
-                fn (array $a, array $b) => strcmp($b['sort_at'], $a['sort_at']),
-            ])
+            ->sort(function (array $a, array $b): int {
+                $urgency = $this->urgencyWeight($b['urgency'])
+                    <=> $this->urgencyWeight($a['urgency']);
+
+                if ($urgency !== 0) {
+                    return $urgency;
+                }
+
+                return strcmp($b['sort_at'], $a['sort_at']);
+            })
             ->values();
     }
 
