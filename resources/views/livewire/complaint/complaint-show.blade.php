@@ -42,9 +42,6 @@
                         @elseif($complaint->status === 'rejected')
                             bg-red-100 text-red-700
 
-                        @elseif($complaint->status === 'escalated')
-                            bg-purple-100 text-purple-700
-
                         @endif
                     ">
                         {{ ucwords(str_replace('_', ' ', $complaint->status)) }}

@@ -2,11 +2,23 @@
 
 namespace App\Models;
 
+use App\Enums\ComplaintStatus;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\ComplaintHistory;
+use InvalidArgumentException;
 
 class Complaint extends Model
 {
+    protected static function booted(): void
+    {
+        static::saving(function (Complaint $complaint): void {
+            if (! ComplaintStatus::tryFrom((string) $complaint->status)) {
+                throw new InvalidArgumentException(
+                    'Invalid complaint status: ' . $complaint->status
+                );
+            }
+        });
+    }
+
     protected $fillable = [
         'ticket_number',
         'reporter_id',
