@@ -82,7 +82,8 @@ class ComplaintPolicy
     public function resolveComplaint(User $user, Complaint $complaint): bool
     {
         return $this->isAssignedHrd($user, $complaint)
-            && $complaint->status === 'in_progress';
+            && $complaint->status === 'in_progress'
+            && ! $complaint->activeEscalation()->exists();
     }
 
     public function completeFollowUp(User $user, Complaint $complaint): bool
@@ -95,7 +96,11 @@ class ComplaintPolicy
 
     public function closeComplaint(User $user, Complaint $complaint): bool
     {
-        if (! $this->isAssignedHrd($user, $complaint) || $complaint->status !== 'resolved') {
+        if (
+            ! $this->isAssignedHrd($user, $complaint)
+            || $complaint->status !== 'resolved'
+            || $complaint->activeEscalation()->exists()
+        ) {
             return false;
         }
 
