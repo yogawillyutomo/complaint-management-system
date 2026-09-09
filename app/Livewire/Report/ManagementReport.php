@@ -87,6 +87,11 @@ class ManagementReport extends Component
             'Follow-up Completed At',
             'Escalation Count',
             'Active Escalation',
+            'Feedback Outcome',
+            'Feedback Rating',
+            'Feedback Comment',
+            'Feedback Addressed At',
+            'Closed Without Feedback Reason',
         ];
 
         $filename = sprintf(
