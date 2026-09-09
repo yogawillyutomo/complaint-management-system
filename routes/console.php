@@ -19,7 +19,7 @@ Artisan::command('notifications:prune {--days=90}', function (): int {
 
     $this->info("Pruned {$deleted} read notification(s) older than {$days} day(s).");
 
-    return self::SUCCESS;
+    return \Symfony\Component\Console\Command\Command::SUCCESS;
 })->purpose('Prune old read in-app notifications while retaining unread items');
 
 Schedule::command('notifications:prune --days=90')
