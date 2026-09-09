@@ -17,14 +17,10 @@ jobs:
   security-audit:
     runs-on: ubuntu-latest
     name: Dependency Security Audit
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-        with:
-          ref: fix/p8-operational-security-hardening
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -42,23 +38,8 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Resolve and persist targeted PHP security updates
-        run: |
-          composer update guzzlehttp/guzzle guzzlehttp/psr7 league/commonmark livewire/livewire \
-            --with-dependencies \
-            --no-interaction \
-            --no-progress \
-            --no-scripts
-
-          if git diff --quiet -- composer.lock composer.json; then
-            echo "Dependency lock already current."
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add composer.lock composer.json
-            git commit -m "security: refresh PHP dependency lock"
-            git push origin HEAD:fix/p8-operational-security-hardening
-          fi
+      - name: Audit Composer lock
+        run: composer audit --locked --no-interaction --abandoned=report
 
       - name: Install frontend dependencies
         run: npm ci
