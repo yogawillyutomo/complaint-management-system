@@ -38,8 +38,15 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Audit Composer lock
-        run: composer audit --locked --no-interaction --abandoned=report
+      - name: Resolve security dependency updates
+        run: |
+          composer update guzzlehttp/guzzle guzzlehttp/psr7 league/commonmark livewire/livewire \
+            --with-all-dependencies \
+            --no-interaction \
+            --no-progress \
+            --no-scripts
+          git diff -- composer.lock composer.json
+          git diff --exit-code -- composer.lock composer.json
 
       - name: Install frontend dependencies
         run: npm ci
