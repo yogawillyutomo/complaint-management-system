@@ -94,6 +94,25 @@ class ComplaintPolicy
             && is_null($complaint->follow_up_completed_at);
     }
 
+    public function submitFeedback(User $user, Complaint $complaint): bool
+    {
+        return $user->hasRole('karyawan')
+            && (int) $complaint->reporter_id === (int) $user->id
+            && $complaint->status === 'resolved'
+            && ! $complaint->feedback()->exists();
+    }
+
+    public function addressFeedback(User $user, Complaint $complaint): bool
+    {
+        $feedback = $complaint->feedback()->first();
+
+        return $this->isAssignedHrd($user, $complaint)
+            && $complaint->status === 'resolved'
+            && $feedback
+            && $feedback->needsFollowUp()
+            && ! $feedback->isAddressed();
+    }
+
     public function closeComplaint(User $user, Complaint $complaint): bool
     {
         if (
@@ -104,8 +123,24 @@ class ComplaintPolicy
             return false;
         }
 
-        return ! $complaint->follow_up_required
-            || ! is_null($complaint->follow_up_completed_at);
+        if (
+            $complaint->follow_up_required
+            && is_null($complaint->follow_up_completed_at)
+        ) {
+            return false;
+        }
+
+        $feedback = $complaint->feedback()->first();
+
+        if (
+            $feedback
+            && $feedback->needsFollowUp()
+            && ! $feedback->isAddressed()
+        ) {
+            return false;
+        }
+
+        return true;
     }
 
     public function escalateComplaint(User $user, Complaint $complaint): bool
