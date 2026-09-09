@@ -5,7 +5,8 @@
     "rc-defect-fix",
     "rc-security-fix",
     "rc-test-fix",
-    "rc-candidate-replace"
+    "rc-candidate-replace",
+    "rc-freeze-admin"
   ],
   "freeze_admin_label": "rc-freeze-admin",
   "docs_only_prefixes": [
