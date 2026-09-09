@@ -247,6 +247,11 @@ class ManagementReportTest extends TestCase
             'follow_up_completed_at',
             'escalation_count',
             'active_escalation',
+            'feedback_outcome',
+            'feedback_rating',
+            'feedback_comment',
+            'feedback_addressed_at',
+            'closed_without_feedback_reason',
         ], array_keys($first));
 
         Livewire::actingAs($this->admin)
