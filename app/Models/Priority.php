@@ -9,6 +9,8 @@ class Priority extends Model
     protected $fillable = [
         'name',
         'level',
+        'response_minutes',
+        'resolution_minutes',
     ];
 
     public function complaints()
