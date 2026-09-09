@@ -9,6 +9,9 @@
 - **Environment:** ____________________
 - **Database:** ____________________
 - **Tester(s):** ____________________
+- **Release evidence artifact:** ____________________
+
+The CI-generated `release-evidence-<commit>` artifact should be retained with the UAT evidence set. It identifies the tested commit, runtime/dependency versions, workflow contracts, roles, SLA reference data, migration count, and the explicit automated/manual-UAT distinction without containing application secrets.
 
 ## Automated Gate
 
