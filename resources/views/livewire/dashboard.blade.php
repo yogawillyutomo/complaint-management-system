@@ -128,6 +128,65 @@
 
 
 
+    {{-- Action Center Preview --}}
+    <div class="bg-white rounded-3xl border border-surface-100 shadow-[0_4px_20px_rgba(15,23,42,0.04)] overflow-hidden">
+        <div class="flex items-center justify-between px-8 py-6 border-b border-surface-100">
+            <div>
+                <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-bold text-slate2-900">Action Center</h2>
+                    <span class="px-3 py-1 rounded-xl bg-brand-100 text-brand-700 text-xs font-bold">
+                        {{ $actionCenterCount }}
+                    </span>
+                </div>
+                <p class="text-sm text-slate2-500 mt-1">
+                    Open work derived from current complaint state.
+                </p>
+            </div>
+
+            <a
+                href="{{ route('action-center.index') }}"
+                class="text-sm font-semibold text-brand-600 hover:text-brand-700 transition">
+                View All
+            </a>
+        </div>
+
+        <div class="divide-y divide-surface-100">
+            @forelse($actionCenterItems as $item)
+                <a
+                    href="{{ route('complaints.show', $item['ticket_number']) }}"
+                    class="flex items-start gap-4 px-8 py-5 hover:bg-surface-50 transition">
+
+                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0
+                        {{ $item['urgency'] === 'critical' ? 'bg-red-100 text-red-600' : ($item['urgency'] === 'warning' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600') }}">
+                        @if($item['urgency'] === 'critical')
+                            <x-heroicon-o-exclamation-triangle class="w-5 h-5" />
+                        @elseif($item['urgency'] === 'warning')
+                            <x-heroicon-o-clock class="w-5 h-5" />
+                        @else
+                            <x-heroicon-o-information-circle class="w-5 h-5" />
+                        @endif
+                    </div>
+
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold uppercase
+                                {{ $item['urgency'] === 'critical' ? 'text-red-600' : ($item['urgency'] === 'warning' ? 'text-amber-600' : 'text-blue-600') }}">
+                                {{ $item['urgency'] }}
+                            </span>
+                            <span class="text-xs text-slate2-400">{{ $item['ticket_number'] }}</span>
+                        </div>
+                        <p class="font-semibold text-slate2-900 mt-1">{{ $item['title'] }}</p>
+                        <p class="text-sm text-slate2-500 mt-1">{{ $item['description'] }}</p>
+                    </div>
+                </a>
+            @empty
+                <div class="px-8 py-10 text-center text-sm text-slate2-500">
+                    No open action items for your role.
+                </div>
+            @endforelse
+        </div>
+    </div>
+
     {{-- Operational Monitoring --}}
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 

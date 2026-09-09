@@ -61,6 +61,14 @@
                     <span>Complaints</span>
                 </a>
 
+                <a href="{{ route('action-center.index') }}"
+                    class="sidebar-item {{ request()->routeIs('action-center.*') ? 'sidebar-item-active' : '' }}">
+
+                    <x-heroicon-o-bolt class="w-5 h-5" />
+
+                    <span>Action Center</span>
+                </a>
+
                 @if(auth()->user()->roles()->where('name', 'admin')->exists())
                 <a href="{{ route('users.index') }}"
                     class="sidebar-item {{ request()->routeIs('users.*') ? 'sidebar-item-active' : '' }}">
@@ -109,13 +117,7 @@
                 <div class="flex items-center gap-4">
 
                     {{-- Notification --}}
-                    <button class="relative w-11 h-11 rounded-2xl border border-surface-200 flex items-center justify-center hover:bg-surface-100 transition">
-
-                        <x-heroicon-o-bell class="w-5 h-5" />
-
-                        <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
-
-                    </button>
+                    <livewire:notification.notification-bell />
 
                     {{-- Profile Dropdown --}}
                     <div

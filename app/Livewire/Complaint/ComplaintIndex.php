@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Complaint;
 use App\Models\ComplaintHistory;
 use App\Models\Priority;
+use App\Services\ComplaintNotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -44,7 +45,7 @@ class ComplaintIndex extends Component
             'priority_id' => 'required|exists:priorities,id',
         ]);
 
-        DB::transaction(function (): void {
+        $complaint = DB::transaction(function (): Complaint {
             $complaint = Complaint::create([
                 'ticket_number' => 'CMP-' . Str::upper((string) Str::ulid()),
                 'reporter_id' => auth()->id(),
@@ -61,7 +62,12 @@ class ComplaintIndex extends Component
                 'type' => 'created',
                 'description' => 'Complaint created',
             ]);
+
+            return $complaint;
         });
+
+        app(ComplaintNotificationService::class)
+            ->notifySupervisorsNewComplaint($complaint);
 
         $this->reset([
             'title',

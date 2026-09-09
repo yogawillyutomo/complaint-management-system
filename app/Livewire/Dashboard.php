@@ -6,6 +6,8 @@ use App\Models\Category;
 use App\Models\Complaint;
 use App\Models\ComplaintHistory;
 use App\Models\Priority;
+use App\Services\ActionCenterService;
+use App\Services\ComplaintNotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -51,7 +53,7 @@ class Dashboard extends Component
             'priority_id' => 'required|exists:priorities,id',
         ]);
 
-        DB::transaction(function (): void {
+        $complaint = DB::transaction(function (): Complaint {
             $complaint = Complaint::create([
                 'ticket_number' => 'CMP-' . Str::upper((string) Str::ulid()),
                 'reporter_id' => auth()->id(),
@@ -68,7 +70,12 @@ class Dashboard extends Component
                 'type' => 'created',
                 'description' => 'Complaint created',
             ]);
+
+            return $complaint;
         });
+
+        app(ComplaintNotificationService::class)
+            ->notifySupervisorsNewComplaint($complaint);
 
         $this->dispatch('toast', [
             'message' => 'Complaint created successfully.',
@@ -111,7 +118,12 @@ class Dashboard extends Component
                     ->diffInMinutes($complaint->resolved_at)
             ), 1);
 
+        $actionItems = app(ActionCenterService::class)
+            ->forUser(auth()->user());
+
         return view('livewire.dashboard', [
+            'actionCenterItems' => $actionItems->take(5),
+            'actionCenterCount' => $actionItems->count(),
             'totalComplaints' => (clone $query)->count(),
             'inProgress' => (clone $query)->where('status', 'in_progress')->count(),
             'resolved' => (clone $query)->where('status', 'resolved')->count(),
