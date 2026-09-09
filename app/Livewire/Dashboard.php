@@ -87,6 +87,30 @@ class Dashboard extends Component
             $query->where('reporter_id', auth()->id());
         }
 
+        $terminalStatuses = ['resolved', 'closed', 'rejected'];
+
+        $responseSamples = (clone $query)
+            ->whereNotNull('first_response_at')
+            ->get(['created_at', 'first_response_at']);
+
+        $resolutionSamples = (clone $query)
+            ->whereNotNull('resolved_at')
+            ->get(['created_at', 'resolved_at']);
+
+        $avgFirstResponseMinutes = $responseSamples->isEmpty()
+            ? null
+            : round($responseSamples->avg(
+                fn (Complaint $complaint) => $complaint->created_at
+                    ->diffInMinutes($complaint->first_response_at)
+            ), 1);
+
+        $avgResolutionMinutes = $resolutionSamples->isEmpty()
+            ? null
+            : round($resolutionSamples->avg(
+                fn (Complaint $complaint) => $complaint->created_at
+                    ->diffInMinutes($complaint->resolved_at)
+            ), 1);
+
         return view('livewire.dashboard', [
             'totalComplaints' => (clone $query)->count(),
             'inProgress' => (clone $query)->where('status', 'in_progress')->count(),
@@ -96,7 +120,29 @@ class Dashboard extends Component
                     $query->where('name', 'Critical');
                 })
                 ->count(),
-            'recentComplaints' => (clone $query)->latest()->take(5)->get(),
+            'openBacklog' => (clone $query)
+                ->whereNotIn('status', $terminalStatuses)
+                ->count(),
+            'overdueResponse' => (clone $query)
+                ->whereNull('first_response_at')
+                ->whereNotNull('response_due_at')
+                ->where('response_due_at', '<', now())
+                ->count(),
+            'overdueResolution' => (clone $query)
+                ->whereNotIn('status', $terminalStatuses)
+                ->whereNotNull('resolution_due_at')
+                ->where('resolution_due_at', '<', now())
+                ->count(),
+            'activeEscalations' => (clone $query)
+                ->whereHas('escalations', fn ($q) => $q->where('status', 'active'))
+                ->count(),
+            'avgFirstResponseMinutes' => $avgFirstResponseMinutes,
+            'avgResolutionMinutes' => $avgResolutionMinutes,
+            'recentComplaints' => (clone $query)
+                ->with(['priority', 'activeEscalation'])
+                ->latest()
+                ->take(5)
+                ->get(),
             'categories' => Category::all(),
             'priorities' => Priority::all(),
         ])->layout('layouts.app');

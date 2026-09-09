@@ -128,6 +128,69 @@
 
 
 
+    {{-- Operational Monitoring --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+        <div class="bg-white rounded-3xl p-6 border border-surface-100 shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+            <p class="text-sm font-medium text-slate2-500">Open Backlog</p>
+            <div class="flex items-end justify-between mt-3">
+                <p class="text-3xl font-bold text-slate2-900">{{ $openBacklog }}</p>
+                <span class="text-xs text-slate2-400">active tickets</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 border border-surface-100 shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+            <p class="text-sm font-medium text-slate2-500">Response Overdue</p>
+            <div class="flex items-end justify-between mt-3">
+                <p class="text-3xl font-bold {{ $overdueResponse > 0 ? 'text-red-500' : 'text-emerald-500' }}">
+                    {{ $overdueResponse }}
+                </p>
+                <span class="text-xs text-slate2-400">awaiting response</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 border border-surface-100 shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+            <p class="text-sm font-medium text-slate2-500">Resolution Overdue</p>
+            <div class="flex items-end justify-between mt-3">
+                <p class="text-3xl font-bold {{ $overdueResolution > 0 ? 'text-red-500' : 'text-emerald-500' }}">
+                    {{ $overdueResolution }}
+                </p>
+                <span class="text-xs text-slate2-400">open past SLA</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 border border-surface-100 shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+            <p class="text-sm font-medium text-slate2-500">Active Escalations</p>
+            <div class="flex items-end justify-between mt-3">
+                <p class="text-3xl font-bold {{ $activeEscalations > 0 ? 'text-purple-600' : 'text-slate2-900' }}">
+                    {{ $activeEscalations }}
+                </p>
+                <span class="text-xs text-slate2-400">need attention</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 border border-surface-100 shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+            <p class="text-sm font-medium text-slate2-500">MTTA</p>
+            <div class="flex items-end justify-between mt-3">
+                <p class="text-3xl font-bold text-blue-600">
+                    {{ $avgFirstResponseMinutes === null ? '-' : number_format($avgFirstResponseMinutes, 1) }}
+                </p>
+                <span class="text-xs text-slate2-400">minutes avg response</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 border border-surface-100 shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+            <p class="text-sm font-medium text-slate2-500">MTTR</p>
+            <div class="flex items-end justify-between mt-3">
+                <p class="text-3xl font-bold text-emerald-600">
+                    {{ $avgResolutionMinutes === null ? '-' : number_format($avgResolutionMinutes, 1) }}
+                </p>
+                <span class="text-xs text-slate2-400">minutes avg resolution</span>
+            </div>
+        </div>
+
+    </div>
+
     {{-- Recent Complaints --}}
     <div class="bg-white mt-6 rounded-3xl border border-surface-100 overflow-hidden shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
 
@@ -178,6 +241,10 @@
 
                         <th class="text-left px-8 py-5 text-xs font-bold uppercase tracking-wider text-slate2-500">
                             Priority
+                        </th>
+
+                        <th class="text-left px-8 py-5 text-xs font-bold uppercase tracking-wider text-slate2-500">
+                            SLA
                         </th>
 
                         <th class="text-left px-8 py-5 text-xs font-bold uppercase tracking-wider text-slate2-500">
@@ -266,6 +333,23 @@
 
                         </td>
 
+                        {{-- SLA --}}
+                        <td class="px-8 py-6">
+                            @if($complaint->activeEscalation)
+                                <span class="inline-flex px-3 py-1.5 rounded-xl bg-purple-100 text-purple-700 text-xs font-semibold">
+                                    Escalated
+                                </span>
+                            @elseif($complaint->isResponseOverdue() || $complaint->isResolutionOverdue())
+                                <span class="inline-flex px-3 py-1.5 rounded-xl bg-red-100 text-red-700 text-xs font-semibold">
+                                    Overdue
+                                </span>
+                            @else
+                                <span class="inline-flex px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-700 text-xs font-semibold">
+                                    On Track
+                                </span>
+                            @endif
+                        </td>
+
                         {{-- Created --}}
                         <td class="px-8 py-6 text-sm text-slate2-500">
 
@@ -279,7 +363,7 @@
 
                     <tr>
 
-                        <td colspan="5" class="px-8 py-16 text-center text-slate2-500">
+                        <td colspan="6" class="px-8 py-16 text-center text-slate2-500">
 
                             No complaints found.
 

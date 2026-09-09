@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Complaint;
 
+use App\Enums\EscalationLevel;
+use App\Enums\EscalationReason;
 use App\Enums\RootCauseCategory;
 use App\Models\Category;
 use App\Models\Complaint;
@@ -33,6 +35,13 @@ class ComplaintShow extends Component
     public $follow_up_required = false;
     public $follow_up_due_at = '';
     public $follow_up_note = '';
+
+    public $showEscalationModal = false;
+    public $escalation_reason_code = '';
+    public $escalation_level = '';
+    public $escalated_to = '';
+    public $escalation_note = '';
+    public $escalation_resolution_note = '';
 
     public function mount(Complaint $complaint): void
     {
@@ -148,6 +157,7 @@ class ComplaintShow extends Component
         DB::transaction(function (): void {
             $this->complaint->update([
                 'status' => 'validated',
+                'first_response_at' => $this->complaint->first_response_at ?? now(),
             ]);
 
             $this->recordHistory(
@@ -172,6 +182,7 @@ class ComplaintShow extends Component
         DB::transaction(function (): void {
             $this->complaint->update([
                 'status' => 'rejected',
+                'first_response_at' => $this->complaint->first_response_at ?? now(),
             ]);
 
             $this->recordHistory(
@@ -355,6 +366,104 @@ class ComplaintShow extends Component
         );
     }
 
+    public function openEscalationModal(): void
+    {
+        $this->authorizeFresh('escalateComplaint');
+
+        $this->resetValidation();
+        $this->showEscalationModal = true;
+    }
+
+    public function escalateComplaint(): void
+    {
+        $this->authorizeFresh('escalateComplaint');
+
+        $this->validate([
+            'escalation_reason_code' => 'required|in:' . implode(',', EscalationReason::values()),
+            'escalation_level' => 'required|in:' . implode(',', EscalationLevel::values()),
+            'escalated_to' => 'nullable|integer|exists:users,id',
+            'escalation_note' => 'required|string|min:10|max:5000',
+        ]);
+
+        if ($this->escalation_level === EscalationLevel::Leadership->value) {
+            $target = User::find($this->escalated_to);
+
+            if (! $target?->hasRole('pimpinan') || ! $target->is_active) {
+                throw ValidationException::withMessages([
+                    'escalated_to' => 'Select an active pimpinan for leadership escalation.',
+                ]);
+            }
+        }
+
+        DB::transaction(function (): void {
+            $this->complaint->escalations()->create([
+                'escalated_by' => auth()->id(),
+                'escalated_to' => $this->escalation_level === EscalationLevel::Leadership->value
+                    ? $this->escalated_to
+                    : null,
+                'reason_code' => $this->escalation_reason_code,
+                'escalation_level' => $this->escalation_level,
+                'note' => $this->escalation_note,
+                'status' => 'active',
+            ]);
+
+            $this->recordHistory(
+                'escalated',
+                'Complaint escalated for higher-level attention'
+            );
+        });
+
+        $this->reset([
+            'escalation_reason_code',
+            'escalation_level',
+            'escalated_to',
+            'escalation_note',
+        ]);
+
+        $this->showEscalationModal = false;
+        $this->reloadComplaint();
+
+        $this->dispatch(
+            'toast',
+            type: 'success',
+            message: 'Complaint escalated successfully.'
+        );
+    }
+
+    public function resolveEscalation(): void
+    {
+        $this->authorizeFresh('resolveEscalation');
+
+        $this->validate([
+            'escalation_resolution_note' => 'required|string|min:10|max:5000',
+        ]);
+
+        $activeEscalation = $this->complaint->activeEscalation()->firstOrFail();
+
+        DB::transaction(function () use ($activeEscalation): void {
+            $activeEscalation->update([
+                'status' => 'resolved',
+                'resolved_by' => auth()->id(),
+                'resolved_at' => now(),
+                'resolution_note' => $this->escalation_resolution_note,
+            ]);
+
+            $this->recordHistory(
+                'escalation_resolved',
+                'Active complaint escalation resolved'
+            );
+        });
+
+        $this->escalation_resolution_note = '';
+        $this->reloadComplaint();
+
+        $this->dispatch(
+            'toast',
+            type: 'success',
+            message: 'Escalation resolved.'
+        );
+    }
+
     public function sendComment(): void
     {
         $this->authorizeFresh('comment');
@@ -405,6 +514,11 @@ class ComplaintShow extends Component
                 ->where('is_active', true)
                 ->get(),
             'rootCauseCategories' => RootCauseCategory::cases(),
+            'escalationReasons' => EscalationReason::cases(),
+            'escalationLevels' => EscalationLevel::cases(),
+            'leadershipTargets' => User::role('pimpinan')
+                ->where('is_active', true)
+                ->get(),
         ])->layout('layouts.app');
     }
 
@@ -480,6 +594,10 @@ class ComplaintShow extends Component
             'handler',
             'comments.user',
             'attachments',
+            'escalations.escalator',
+            'escalations.target',
+            'escalations.resolver',
+            'activeEscalation',
         ]);
     }
 }

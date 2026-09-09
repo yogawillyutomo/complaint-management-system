@@ -82,7 +82,8 @@ class ComplaintPolicy
     public function resolveComplaint(User $user, Complaint $complaint): bool
     {
         return $this->isAssignedHrd($user, $complaint)
-            && $complaint->status === 'in_progress';
+            && $complaint->status === 'in_progress'
+            && ! $complaint->activeEscalation()->exists();
     }
 
     public function completeFollowUp(User $user, Complaint $complaint): bool
@@ -95,12 +96,42 @@ class ComplaintPolicy
 
     public function closeComplaint(User $user, Complaint $complaint): bool
     {
-        if (! $this->isAssignedHrd($user, $complaint) || $complaint->status !== 'resolved') {
+        if (
+            ! $this->isAssignedHrd($user, $complaint)
+            || $complaint->status !== 'resolved'
+            || $complaint->activeEscalation()->exists()
+        ) {
             return false;
         }
 
         return ! $complaint->follow_up_required
             || ! is_null($complaint->follow_up_completed_at);
+    }
+
+    public function escalateComplaint(User $user, Complaint $complaint): bool
+    {
+        if (in_array($complaint->status, ['closed', 'rejected'], true)) {
+            return false;
+        }
+
+        if ($complaint->activeEscalation()->exists()) {
+            return false;
+        }
+
+        return $user->hasAnyRole(['admin', 'supervisor'])
+            || $this->isAssignedHrd($user, $complaint);
+    }
+
+    public function resolveEscalation(User $user, Complaint $complaint): bool
+    {
+        $activeEscalation = $complaint->activeEscalation()->first();
+
+        if (! $activeEscalation) {
+            return false;
+        }
+
+        return $user->hasAnyRole(['admin', 'pimpinan'])
+            || (int) $activeEscalation->escalated_to === (int) $user->id;
     }
 
     public function comment(User $user, Complaint $complaint): bool

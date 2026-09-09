@@ -119,6 +119,14 @@
                 </button>
                 @endcan
 
+                @can('escalateComplaint', $complaint)
+                <button
+                    wire:click="openEscalationModal"
+                    class="px-5 py-3 rounded-2xl bg-purple-600 text-white hover:bg-purple-700 transition">
+                    Escalate
+                </button>
+                @endcan
+
                 @can('update', $complaint)
                 <button
                     type="button"
@@ -711,6 +719,163 @@
                     </div>
 
                 </div>
+
+                {{-- SLA Monitoring --}}
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-semibold text-slate2-900">
+                            SLA Monitoring
+                        </h3>
+
+                        @if($complaint->isResponseOverdue() || $complaint->isResolutionOverdue())
+                            <span class="px-3 py-1 rounded-xl bg-red-100 text-red-700 text-xs font-semibold">
+                                SLA Breach
+                            </span>
+                        @else
+                            <span class="px-3 py-1 rounded-xl bg-emerald-100 text-emerald-700 text-xs font-semibold">
+                                On Track
+                            </span>
+                        @endif
+                    </div>
+
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-surface-100 p-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <p class="text-sm font-semibold text-slate2-800">
+                                    First Response
+                                </p>
+                                <span class="text-xs font-semibold {{ $complaint->isResponseOverdue() ? 'text-red-600' : 'text-emerald-600' }}">
+                                    {{ $complaint->isResponseOverdue() ? 'Breached' : ($complaint->first_response_at ? 'Responded' : 'Pending') }}
+                                </span>
+                            </div>
+
+                            <p class="text-xs text-slate2-500 mt-2">
+                                Due {{ $complaint->response_due_at?->format('d M Y H:i') ?? '-' }}
+                            </p>
+
+                            @if($complaint->first_response_at)
+                                <p class="text-xs text-slate2-500 mt-1">
+                                    Responded {{ $complaint->first_response_at->format('d M Y H:i') }}
+                                </p>
+                            @endif
+                        </div>
+
+                        <div class="rounded-2xl border border-surface-100 p-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <p class="text-sm font-semibold text-slate2-800">
+                                    Resolution
+                                </p>
+                                <span class="text-xs font-semibold {{ $complaint->isResolutionOverdue() ? 'text-red-600' : 'text-emerald-600' }}">
+                                    {{ $complaint->isResolutionOverdue() ? 'Breached' : ($complaint->resolved_at ? 'Resolved' : 'Pending') }}
+                                </span>
+                            </div>
+
+                            <p class="text-xs text-slate2-500 mt-2">
+                                Due {{ $complaint->resolution_due_at?->format('d M Y H:i') ?? '-' }}
+                            </p>
+
+                            @if($complaint->resolved_at)
+                                <p class="text-xs text-slate2-500 mt-1">
+                                    Resolved {{ $complaint->resolved_at->format('d M Y H:i') }}
+                                </p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Escalation --}}
+                <div class="card p-6">
+                    <div class="flex items-center justify-between gap-4 mb-5">
+                        <h3 class="font-semibold text-slate2-900">
+                            Escalation
+                        </h3>
+
+                        @if($complaint->activeEscalation)
+                            <span class="px-3 py-1 rounded-xl bg-purple-100 text-purple-700 text-xs font-semibold">
+                                Active
+                            </span>
+                        @else
+                            <span class="px-3 py-1 rounded-xl bg-slate-100 text-slate2-500 text-xs font-semibold">
+                                None Active
+                            </span>
+                        @endif
+                    </div>
+
+                    @if($complaint->activeEscalation)
+                        @php($activeEscalation = $complaint->activeEscalation)
+                        <div class="rounded-2xl border border-purple-100 bg-purple-50/60 p-4">
+                            <p class="font-semibold text-slate2-900">
+                                {{ \App\Enums\EscalationReason::tryFrom($activeEscalation->reason_code)?->label() ?? $activeEscalation->reason_code }}
+                            </p>
+                            <p class="text-sm text-slate2-600 mt-2 leading-6">
+                                {{ $activeEscalation->note }}
+                            </p>
+                            <div class="mt-3 text-xs text-slate2-500 space-y-1">
+                                <p>
+                                    Level: {{ \App\Enums\EscalationLevel::tryFrom($activeEscalation->escalation_level)?->label() ?? $activeEscalation->escalation_level }}
+                                </p>
+                                <p>
+                                    Escalated by {{ $activeEscalation->escalator?->name ?? 'System' }}
+                                </p>
+                                @if($activeEscalation->target)
+                                    <p>
+                                        Target: {{ $activeEscalation->target->name }}
+                                    </p>
+                                @endif
+                            </div>
+                        </div>
+
+                        @can('resolveEscalation', $complaint)
+                            <div class="mt-4">
+                                <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                                    Escalation Resolution Note
+                                </label>
+                                <textarea
+                                    wire:model="escalation_resolution_note"
+                                    rows="3"
+                                    class="input resize-none"
+                                    placeholder="Record the decision, support, or higher-level resolution..."></textarea>
+                                @error('escalation_resolution_note')
+                                    <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                                @enderror
+
+                                <button
+                                    wire:click="resolveEscalation"
+                                    class="w-full mt-3 px-4 py-3 rounded-2xl bg-purple-600 text-white hover:bg-purple-700 transition">
+                                    Resolve Escalation
+                                </button>
+                            </div>
+                        @endcan
+                    @else
+                        <p class="text-sm text-slate2-500">
+                            No active escalation for this complaint.
+                        </p>
+                    @endif
+
+                    @if($complaint->escalations->isNotEmpty())
+                        <div class="mt-5 pt-5 border-t border-surface-100 space-y-3">
+                            <p class="text-xs uppercase tracking-wide font-semibold text-slate2-400">
+                                Escalation History
+                            </p>
+
+                            @foreach($complaint->escalations->take(3) as $escalation)
+                                <div class="text-sm">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <span class="font-medium text-slate2-800">
+                                            {{ \App\Enums\EscalationReason::tryFrom($escalation->reason_code)?->label() ?? $escalation->reason_code }}
+                                        </span>
+                                        <span class="text-xs {{ $escalation->status === 'active' ? 'text-purple-600' : 'text-emerald-600' }}">
+                                            {{ ucfirst($escalation->status) }}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate2-500 mt-1">
+                                        {{ $escalation->created_at->format('d M Y H:i') }}
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
             </div>
 
         </div>
@@ -1003,5 +1168,105 @@
 
     </div>
 
+    @endif
+
+    @if($showEscalationModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between px-8 py-6 border-b border-surface-100">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate2-900">
+                        Escalate Complaint
+                    </h2>
+                    <p class="text-sm text-slate2-500 mt-1">
+                        Escalate when authority, SLA, resource, policy, or system constraints require higher-level attention.
+                    </p>
+                </div>
+
+                <button
+                    wire:click="$set('showEscalationModal', false)"
+                    class="w-10 h-10 rounded-2xl hover:bg-surface-100 flex items-center justify-center transition">
+                    <x-heroicon-o-x-mark class="w-5 h-5 text-slate2-500" />
+                </button>
+            </div>
+
+            <div class="p-8 space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                        Reason
+                    </label>
+                    <select wire:model="escalation_reason_code" class="input">
+                        <option value="">Select escalation reason</option>
+                        @foreach($escalationReasons as $reason)
+                            <option value="{{ $reason->value }}">{{ $reason->label() }}</option>
+                        @endforeach
+                    </select>
+                    @error('escalation_reason_code')
+                        <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                        Escalation Level
+                    </label>
+                    <select wire:model.live="escalation_level" class="input">
+                        <option value="">Select escalation level</option>
+                        @foreach($escalationLevels as $level)
+                            <option value="{{ $level->value }}">{{ $level->label() }}</option>
+                        @endforeach
+                    </select>
+                    @error('escalation_level')
+                        <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                @if($escalation_level === \App\Enums\EscalationLevel::Leadership->value)
+                    <div>
+                        <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                            Target Pimpinan
+                        </label>
+                        <select wire:model="escalated_to" class="input">
+                            <option value="">Select active pimpinan</option>
+                            @foreach($leadershipTargets as $target)
+                                <option value="{{ $target->id }}">{{ $target->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('escalated_to')
+                            <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endif
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                        Escalation Note
+                    </label>
+                    <textarea
+                        wire:model="escalation_note"
+                        rows="4"
+                        class="input resize-none"
+                        placeholder="Explain why the complaint requires escalation and what support or decision is needed..."></textarea>
+                    @error('escalation_note')
+                        <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 px-8 py-6 border-t border-surface-100 bg-surface-50">
+                <button
+                    wire:click="$set('showEscalationModal', false)"
+                    class="px-5 py-3 rounded-2xl border border-surface-200 bg-white hover:bg-surface-100 transition">
+                    Cancel
+                </button>
+
+                <button
+                    wire:click="escalateComplaint"
+                    class="px-5 py-3 rounded-2xl bg-purple-600 text-white hover:bg-purple-700 transition">
+                    Escalate Complaint
+                </button>
+            </div>
+        </div>
+    </div>
     @endif
 </div>
