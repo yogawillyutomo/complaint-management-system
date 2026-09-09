@@ -14,6 +14,45 @@ permissions:
   contents: read
 
 jobs:
+  rc-freeze-guard:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    name: Release Candidate Freeze Guard
+
+    steps:
+      - name: Checkout code with history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Load freeze policy from base branch
+        env:
+          RC_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if git show "$RC_BASE_SHA:.github/rc-freeze.json" > /tmp/rc-freeze.json 2>/dev/null; then
+            echo "Base release-candidate freeze policy loaded."
+          else
+            echo '{"schema_version":1,"active":false}' > /tmp/rc-freeze.json
+            echo "Base branch has no freeze policy yet; guard is inactive."
+          fi
+
+      - name: Evaluate release candidate freeze
+        env:
+          RC_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          RC_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          RC_LABELS_JSON: ${{ toJson(github.event.pull_request.labels) }}
+          RC_FREEZE_CONFIG_PATH: /tmp/rc-freeze.json
+        run: php scripts/rc-freeze-guard.php
+
   security-audit:
     runs-on: ubuntu-latest
     name: Dependency Security Audit
