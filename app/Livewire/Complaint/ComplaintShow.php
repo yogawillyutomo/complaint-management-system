@@ -16,7 +16,6 @@ class ComplaintShow extends Component
     public Complaint $complaint;
 
     public $showEditModal = false;
-    public $showDeleteModal = false;
     public $title = '';
     public $description = '';
     public $category_id = '';
@@ -129,29 +128,6 @@ class ComplaintShow extends Component
             type: 'success',
             message: 'Complaint updated successfully.'
         );
-    }
-
-    public function openDeleteModal(): void
-    {
-        $this->authorizeFresh('delete');
-
-        $this->showDeleteModal = true;
-    }
-
-    public function deleteComplaint()
-    {
-        $this->authorizeFresh('delete');
-
-        $this->complaint->delete();
-
-        return redirect()
-            ->route('complaints.index')
-            ->with('success', 'Complaint deleted successfully.');
-    }
-
-    public function closeDeleteModal(): void
-    {
-        $this->showDeleteModal = false;
     }
 
     public function validateComplaint(): void

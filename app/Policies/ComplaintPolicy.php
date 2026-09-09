@@ -41,7 +41,7 @@ class ComplaintPolicy
 
     public function delete(User $user, Complaint $complaint): bool
     {
-        return $user->hasRole('admin');
+        return false;
     }
 
     public function validateComplaint(User $user, Complaint $complaint): bool

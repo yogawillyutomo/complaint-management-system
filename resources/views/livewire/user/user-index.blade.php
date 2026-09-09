@@ -26,6 +26,12 @@
 
         </div>
 
+        @error('status')
+        <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-700">
+            {{ $message }}
+        </div>
+        @enderror
+
         {{-- Table --}}
         <div class="bg-white rounded-3xl border border-surface-100 overflow-hidden shadow-sm">
 
@@ -45,6 +51,10 @@
 
                         <th class="px-6 py-4 text-sm font-semibold text-slate2-700">
                             Role
+                        </th>
+
+                        <th class="px-6 py-4 text-sm font-semibold text-slate2-700">
+                            Status
                         </th>
 
                         <th class="px-6 py-4 text-sm font-semibold text-slate2-700">
@@ -103,6 +113,14 @@
 
                         </td>
 
+                        <td class="px-6 py-5">
+
+                            <span class="px-3 py-1 rounded-xl text-sm font-medium {{ $user->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate2-500' }}">
+                                {{ $user->is_active ? 'Active' : 'Inactive' }}
+                            </span>
+
+                        </td>
+
                         <td class="px-6 py-5 text-slate2-600 text-sm">
 
                             {{ $user->created_at->format('d M Y') }}
@@ -120,6 +138,17 @@
 
                                 </button>
 
+                                @if((int) $user->id !== (int) auth()->id())
+                                <button
+                                    wire:click="toggleUserStatus({{ $user->id }})"
+                                    wire:confirm="{{ $user->is_active ? 'Deactivate this user account?' : 'Activate this user account?' }}"
+                                    class="px-3 h-10 rounded-xl border border-surface-200 text-sm font-semibold {{ $user->is_active ? 'text-red-600 hover:bg-red-50 hover:border-red-200' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200' }} transition">
+
+                                    {{ $user->is_active ? 'Deactivate' : 'Activate' }}
+
+                                </button>
+                                @endif
+
                             </div>
 
                         </td>
@@ -130,7 +159,7 @@
 
                     <tr>
 
-                        <td colspan="4" class="px-6 py-10 text-center text-slate2-500">
+                        <td colspan="6" class="px-6 py-10 text-center text-slate2-500">
 
                             No users found.
 
