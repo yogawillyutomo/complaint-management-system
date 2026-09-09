@@ -21,6 +21,9 @@ This checklist is for a UAT/release-candidate build. It is not a deployment inst
 - [ ] Composer security audit passes.
 - [ ] npm security audit reports no high/critical vulnerability.
 - [ ] End-to-end UAT feature tests pass.
+- [ ] Release evidence artifact exists for the exact tested commit.
+- [ ] Release evidence reports `manual_uat_status = NOT_RUN` until human execution.
+- [ ] Release evidence contains no secrets or credentials.
 
 ## 3. Database and Migration Readiness
 

@@ -92,6 +92,25 @@ jobs:
       - name: Execute SQLite tests
         run: php artisan test
 
+      - name: Prepare release evidence reference data
+        if: matrix.php == 8.3
+        run: php artisan migrate:fresh --seed --force
+
+      - name: Generate release evidence
+        if: matrix.php == 8.3
+        env:
+          RELEASE_EVIDENCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: php artisan release:evidence --commit="$RELEASE_EVIDENCE_SHA" --output=storage/app/release-evidence.json
+
+      - name: Upload release evidence
+        if: matrix.php == 8.3
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          path: storage/app/release-evidence.json
+          if-no-files-found: error
+          retention-days: 30
+
   mysql:
     runs-on: ubuntu-latest
     name: MySQL 8.4 / PHP 8.3
