@@ -58,12 +58,13 @@ class ManagementReport extends Component
         $this->resetValidation();
     }
 
-    public function exportCsv(ComplaintAnalyticsService $analytics)
+    public function exportCsv()
     {
         $this->authorizeManagementReport();
 
         [$from, $to] = $this->appliedRange();
 
+        $analytics = app(ComplaintAnalyticsService::class);
         $rows = $analytics->exportRows($from, $to);
 
         $headers = [
@@ -110,11 +111,12 @@ class ManagementReport extends Component
         ]);
     }
 
-    public function render(ComplaintAnalyticsService $analytics)
+    public function render()
     {
         $this->authorizeManagementReport();
 
         [$from, $to] = $this->appliedRange();
+        $analytics = app(ComplaintAnalyticsService::class);
 
         return view('livewire.report.management-report', [
             'report' => $analytics->build($from, $to),
