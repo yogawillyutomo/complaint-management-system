@@ -18,9 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     name: Dependency Security Audit
 
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
