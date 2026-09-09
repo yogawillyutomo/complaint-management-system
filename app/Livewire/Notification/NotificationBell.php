@@ -2,12 +2,16 @@
 
 namespace App\Livewire\Notification;
 
+use App\Services\MutationRateLimiter;
 use Livewire\Component;
 
 class NotificationBell extends Component
 {
     public function markRead(string $notificationId): void
     {
+        app(MutationRateLimiter::class)
+            ->consume('notification-read', 120);
+
         $notification = auth()->user()
             ->notifications()
             ->whereKey($notificationId)
@@ -22,6 +26,9 @@ class NotificationBell extends Component
 
     public function markAllRead(): void
     {
+        app(MutationRateLimiter::class)
+            ->consume('notification-read-all', 10);
+
         auth()->user()
             ->unreadNotifications
             ->each
