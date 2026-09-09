@@ -201,7 +201,16 @@ CI gates include:
 - MySQL 8.4 / PHP 8.3;
 - frontend build;
 - Composer security audit;
-- npm high-severity security audit.
+- npm high-severity security audit;
+- release evidence generation on the PHP 8.3 lane.
+
+Generate local release evidence after migrating/seeding reference data:
+
+```bash
+php artisan release:evidence --commit=<git-sha>
+```
+
+The manifest intentionally excludes secrets and records manual UAT as `NOT_RUN` until a human tester executes and signs the UAT record.
 
 ## UAT
 
@@ -244,7 +253,8 @@ The project has completed the following implementation tranches:
 - P6 — Employee Feedback & Resolution Confirmation
 - P7 — Action Center & In-App Notifications
 - P8 — Operational & Security Hardening
-- P9 — UAT & Release Validation (current tranche)
+- P9 — UAT & Release Validation
+- P10 — Release Evidence & Thesis Traceability (current tranche)
 
 ## Thesis / Research Note
 
