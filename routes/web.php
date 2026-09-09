@@ -5,6 +5,7 @@ use App\Livewire\Complaint\ComplaintIndex;
 use App\Livewire\Complaint\ComplaintShow;
 use App\Livewire\User\UserIndex;
 use App\Livewire\Report\ManagementReport;
+use App\Livewire\ActionCenter\ActionCenter;
 use App\Http\Middleware\EnsureUserIsActive;
 
 // Route::view('/', 'welcome');
@@ -37,6 +38,9 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
 
     Route::get('/reports', ManagementReport::class)
         ->name('reports.index');
+
+    Route::get('/action-center', ActionCenter::class)
+        ->name('action-center.index');
 });
 
 Route::get('/users', UserIndex::class)
