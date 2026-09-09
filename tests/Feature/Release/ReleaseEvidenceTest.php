@@ -76,16 +76,33 @@ class ReleaseEvidenceTest extends TestCase
             'super-secret-app-key',
             'db-secret',
             'mail-secret',
+        ] as $forbiddenValue) {
+            $this->assertStringNotContainsString(
+                $forbiddenValue,
+                $json,
+                'Release evidence must not contain configured secret values.'
+            );
+        }
+
+        $keys = collect($this->flattenKeys($manifest))
+            ->map(fn (string $key): string => strtolower($key));
+
+        foreach ([
             'app_key',
             'password',
+            'db_password',
+            'database_password',
             'token',
-            'secret',
+            'api_token',
+            'api_key',
             'credential',
-        ] as $forbidden) {
-            $this->assertStringNotContainsString(
-                $forbidden,
-                $json,
-                "Release evidence must not contain {$forbidden}."
+            'credentials',
+            'secret',
+        ] as $forbiddenKey) {
+            $this->assertNotContains(
+                $forbiddenKey,
+                $keys,
+                "Release evidence must not expose sensitive key {$forbiddenKey}."
             );
         }
     }
@@ -132,5 +149,23 @@ class ReleaseEvidenceTest extends TestCase
             '--commit' => 'not-a-git-sha',
             '--stdout' => true,
         ])->assertFailed();
+    }
+
+    private function flattenKeys(array $data): array
+    {
+        $keys = [];
+
+        foreach ($data as $key => $value) {
+            $keys[] = (string) $key;
+
+            if (is_array($value)) {
+                $keys = array_merge(
+                    $keys,
+                    $this->flattenKeys($value)
+                );
+            }
+        }
+
+        return $keys;
     }
 }
