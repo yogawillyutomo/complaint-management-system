@@ -445,9 +445,11 @@
 
         </a>
 
+        @if(auth()->user()->hasAnyRole(['admin', 'supervisor', 'hrd', 'pimpinan']))
         {{-- Reports --}}
-        <div
-            class="group bg-white min-h-[190px] rounded-3xl p-8 border border-dashed border-surface-200 shadow-[0_4px_20px_rgba(15,23,42,0.04)] opacity-80">
+        <a
+            href="{{ route('reports.index') }}"
+            class="group bg-white min-h-[190px] rounded-3xl p-8 border border-surface-100 shadow-[0_4px_20px_rgba(15,23,42,0.04)] hover:-translate-y-1 hover:border-purple-200 transition-all duration-300">
 
             <div class="flex items-center justify-between gap-6 h-full">
 
@@ -458,26 +460,21 @@
                     </p>
 
                     <p class="text-sm text-slate2-500 mt-3 leading-7">
-                        Export and analyze complaint reports and statistics.
+                        Analyze root causes, SLA compliance, recurring patterns, PIC performance, and escalation trends.
                     </p>
-
-                    <span class="inline-flex mt-5 px-3 py-1.5 rounded-xl bg-slate-100 text-xs font-semibold text-slate2-600">
-
-                        Coming Soon
-
-                    </span>
 
                 </div>
 
-                <div class="w-16 h-16 shrink-0 rounded-3xl bg-slate-100 flex items-center justify-center">
+                <div class="w-16 h-16 shrink-0 rounded-3xl bg-purple-100 flex items-center justify-center group-hover:bg-purple-600 transition-all duration-300">
 
-                    <x-heroicon-o-chart-bar class="w-8 h-8 text-slate2-500" />
+                    <x-heroicon-o-chart-bar class="w-8 h-8 text-purple-600 group-hover:text-white transition" />
 
                 </div>
 
             </div>
 
-        </div>
+        </a>
+        @endif
 
     </div>
 

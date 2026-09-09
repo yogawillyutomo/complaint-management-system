@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Livewire\Complaint\ComplaintIndex;
 use App\Livewire\Complaint\ComplaintShow;
 use App\Livewire\User\UserIndex;
+use App\Livewire\Report\ManagementReport;
 use App\Http\Middleware\EnsureUserIsActive;
 
 // Route::view('/', 'welcome');
@@ -33,6 +34,9 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
 
     Route::get('/complaints/{complaint:ticket_number}', ComplaintShow::class)
         ->name('complaints.show');
+
+    Route::get('/reports', ManagementReport::class)
+        ->name('reports.index');
 });
 
 Route::get('/users', UserIndex::class)
