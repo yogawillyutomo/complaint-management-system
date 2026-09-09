@@ -76,11 +76,17 @@ foreach ($lines as $line) {
     }
 
     $status = (string) $parts[0];
+    $normalizedStatus = substr($status, 0, 1);
     $path = (string) end($parts);
+    $oldPath = in_array($normalizedStatus, ['R', 'C'], true)
+        && count($parts) >= 3
+            ? (string) $parts[1]
+            : null;
 
     $changes[] = [
-        'status' => substr($status, 0, 1),
+        'status' => $normalizedStatus,
         'path' => $path,
+        'old_path' => $oldPath,
     ];
 }
 
