@@ -211,6 +211,10 @@ class ComplaintAuthorizationTest extends TestCase
 
         Livewire::actingAs($hrd)
             ->test(ComplaintShow::class, ['complaint' => $complaint->fresh()])
+            ->set('root_cause_category', 'workload_target')
+            ->set('root_cause', 'The workload exceeded the available operating capacity.')
+            ->set('resolution_summary', 'Work allocation and priorities were adjusted by the assigned PIC.')
+            ->set('follow_up_required', false)
             ->call('resolveComplaint')
             ->assertHasNoErrors();
 

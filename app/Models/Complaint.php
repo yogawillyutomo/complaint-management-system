@@ -19,6 +19,17 @@ class Complaint extends Model
         });
     }
 
+    protected function casts(): array
+    {
+        return [
+            'follow_up_required' => 'boolean',
+            'follow_up_due_at' => 'datetime',
+            'follow_up_completed_at' => 'datetime',
+            'resolved_at' => 'datetime',
+            'closed_at' => 'datetime',
+        ];
+    }
+
     protected $fillable = [
         'ticket_number',
         'reporter_id',
@@ -27,6 +38,14 @@ class Complaint extends Model
         'priority_id',
         'title',
         'description',
+        'root_cause_category',
+        'root_cause',
+        'resolution_summary',
+        'resolution_evidence',
+        'follow_up_required',
+        'follow_up_due_at',
+        'follow_up_completed_at',
+        'follow_up_note',
         'status',
         'resolved_at',
         'closed_at',
