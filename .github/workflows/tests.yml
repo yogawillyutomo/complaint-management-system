@@ -50,6 +50,7 @@ jobs:
           RC_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           RC_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           RC_LABELS_JSON: ${{ toJson(github.event.pull_request.labels) }}
+          RC_PR_TITLE: ${{ github.event.pull_request.title }}
           RC_FREEZE_CONFIG_PATH: /tmp/rc-freeze.json
         run: php scripts/rc-freeze-guard.php
 
