@@ -7,7 +7,8 @@ class ReleaseFreezePolicy
     public function evaluate(
         array $config,
         array $changes,
-        array $labels
+        array $labels,
+        string $title = ''
     ): array {
         $active = (bool) ($config['active'] ?? false);
 
@@ -24,6 +25,17 @@ class ReleaseFreezePolicy
             $labels
         )));
 
+        $normalizedTitle = strtolower(trim($title));
+        $adminTitlePrefix = strtolower((string) (
+            $config['freeze_admin_title_prefix']
+            ?? '[rc-admin]'
+        ));
+        $hasFreezeAdminReason = in_array(
+            strtolower((string) ($config['freeze_admin_label'] ?? 'rc-freeze-admin')),
+            $normalizedLabels,
+            true
+        ) || str_starts_with($normalizedTitle, $adminTitlePrefix);
+
         $freezeConfigPath = (string) (
             $config['freeze_config_path']
             ?? '.github/rc-freeze.json'
@@ -36,11 +48,7 @@ class ReleaseFreezePolicy
 
             if (
                 ($path === $freezeConfigPath || $oldPath === $freezeConfigPath)
-                && ! in_array(
-                    strtolower((string) ($config['freeze_admin_label'] ?? 'rc-freeze-admin')),
-                    $normalizedLabels,
-                    true
-                )
+                && ! $hasFreezeAdminReason
             ) {
                 return $this->result(
                     false,
@@ -82,11 +90,20 @@ class ReleaseFreezePolicy
             $allowedLabels
         ));
 
-        if ($matchingLabels === []) {
+        $matchingPrefixes = array_values(array_filter(
+            array_map(
+                static fn ($prefix): string => strtolower((string) $prefix),
+                $config['allowed_title_prefixes'] ?? []
+            ),
+            static fn (string $prefix): bool => $prefix !== ''
+                && str_starts_with($normalizedTitle, $prefix)
+        ));
+
+        if ($matchingLabels === [] && $matchingPrefixes === []) {
             return $this->result(
                 false,
                 'RC_CHANGE_REASON_REQUIRED',
-                'Non-documentation changes require an approved RC change label.'
+                'Non-documentation changes require an approved RC label or title prefix.'
             );
         }
 
@@ -96,6 +113,7 @@ class ReleaseFreezePolicy
             'Change is allowed under RC freeze and creates a replacement candidate.',
             [
                 'matching_labels' => $matchingLabels,
+                'matching_title_prefixes' => $matchingPrefixes,
                 'replacement_candidate_required' => true,
             ]
         );
