@@ -102,6 +102,72 @@
         </div>
     </div>
 
+    <div class="card p-6">
+        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-slate2-900">Employee Feedback Effectiveness</h2>
+                <p class="text-sm text-slate2-500 mt-1">
+                    Reporter confirmation and satisfaction for complaints that reached a recorded resolution.
+                </p>
+            </div>
+
+            @if($report['feedback']['pending'] > 0)
+                <span class="px-3 py-1 rounded-xl bg-amber-100 text-amber-700 text-xs font-semibold">
+                    {{ $report['feedback']['pending'] }} pending follow-up
+                </span>
+            @endif
+        </div>
+
+        <div class="grid grid-cols-2 xl:grid-cols-6 gap-4 mt-6">
+            <div class="rounded-2xl bg-surface-50 p-4">
+                <p class="text-xs text-slate2-500">Feedback Coverage</p>
+                <p class="text-2xl font-bold text-brand-600 mt-2">
+                    {{ $report['feedback']['coverageRate'] === null ? '-' : number_format($report['feedback']['coverageRate'], 1) . '%' }}
+                </p>
+                <p class="text-[11px] text-slate2-400 mt-1">
+                    {{ $report['feedback']['submitted'] }}/{{ $report['feedback']['eligibleComplaints'] }} resolved
+                </p>
+            </div>
+
+            <div class="rounded-2xl bg-surface-50 p-4">
+                <p class="text-xs text-slate2-500">Avg Satisfaction</p>
+                <p class="text-2xl font-bold text-amber-600 mt-2">
+                    {{ $report['feedback']['averageSatisfaction'] === null ? '-' : number_format($report['feedback']['averageSatisfaction'], 2) . '/5' }}
+                </p>
+                <p class="text-[11px] text-slate2-400 mt-1">submitted feedback only</p>
+            </div>
+
+            <div class="rounded-2xl bg-emerald-50 p-4">
+                <p class="text-xs text-emerald-600">Accepted</p>
+                <p class="text-2xl font-bold text-emerald-700 mt-2">{{ $report['feedback']['accepted'] }}</p>
+                <p class="text-[11px] text-emerald-600/70 mt-1">resolution accepted</p>
+            </div>
+
+            <div class="rounded-2xl bg-amber-50 p-4">
+                <p class="text-xs text-amber-600">Needs Follow-up</p>
+                <p class="text-2xl font-bold text-amber-700 mt-2">{{ $report['feedback']['needsFollowUp'] }}</p>
+                <p class="text-[11px] text-amber-600/70 mt-1">employee concerns remain</p>
+            </div>
+
+            <div class="rounded-2xl bg-blue-50 p-4">
+                <p class="text-xs text-blue-600">Addressed</p>
+                <p class="text-2xl font-bold text-blue-700 mt-2">{{ $report['feedback']['addressed'] }}</p>
+                <p class="text-[11px] text-blue-600/70 mt-1">follow-up handled</p>
+            </div>
+
+            <div class="rounded-2xl bg-red-50 p-4">
+                <p class="text-xs text-red-600">Closed No Feedback</p>
+                <p class="text-2xl font-bold text-red-700 mt-2">{{ $report['feedback']['closedWithoutFeedback'] }}</p>
+                <p class="text-[11px] text-red-600/70 mt-1">reason recorded</p>
+            </div>
+        </div>
+
+        <div class="mt-5 rounded-2xl border border-surface-200 bg-surface-50 p-4 text-sm text-slate2-600">
+            Feedback coverage is calculated only from complaints with a recorded <strong>resolved_at</strong> timestamp.
+            Satisfaction averages include only submitted employee feedback.
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="card p-6">
             <h2 class="text-xl font-bold text-slate2-900">SLA & Time Metrics</h2>
