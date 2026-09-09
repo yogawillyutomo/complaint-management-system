@@ -12,6 +12,7 @@ use App\Models\ComplaintHistory;
 use App\Models\Priority;
 use App\Models\User;
 use App\Services\ComplaintNotificationService;
+use App\Services\MutationRateLimiter;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -367,6 +368,9 @@ class ComplaintShow extends Component
     {
         $this->authorizeFresh('submitFeedback');
 
+        app(MutationRateLimiter::class)
+            ->consume('feedback-submit', 5);
+
         $this->validate([
             'feedback_outcome' => 'required|in:' . implode(',', FeedbackOutcome::values()),
             'feedback_rating' => 'required|integer|min:1|max:5',
@@ -602,6 +606,9 @@ class ComplaintShow extends Component
     public function sendComment(): void
     {
         $this->authorizeFresh('comment');
+
+        app(MutationRateLimiter::class)
+            ->consume('complaint-comment', 30);
 
         $this->validate([
             'message' => 'required|min:2',
