@@ -9,6 +9,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 $baseSha = trim((string) getenv('RC_BASE_SHA'));
 $headSha = trim((string) getenv('RC_HEAD_SHA'));
 $labelsJson = (string) getenv('RC_LABELS_JSON');
+$prTitle = (string) getenv('RC_PR_TITLE');
 $configPath = (string) getenv('RC_FREEZE_CONFIG_PATH');
 
 if ($baseSha === '' || $headSha === '') {
@@ -93,7 +94,8 @@ foreach ($lines as $line) {
 $result = (new ReleaseFreezePolicy())->evaluate(
     $config,
     $changes,
-    $labels
+    $labels,
+    $prTitle
 );
 
 echo json_encode(
@@ -102,6 +104,7 @@ echo json_encode(
         'head_sha' => $headSha,
         'change_count' => count($changes),
         'labels' => $labels,
+        'pr_title' => $prTitle,
         'base_freeze_active' => (bool) ($config['active'] ?? false),
     ]),
     JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
