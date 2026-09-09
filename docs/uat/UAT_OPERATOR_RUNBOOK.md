@@ -6,9 +6,11 @@ This runbook is the operational procedure for executing manual UAT against one e
 
 Manual UAT is a human acceptance activity. Automated tests and CI evidence are prerequisites, not substitutes for tester observation.
 
-## 1. Select the Release Candidate
+## 1. Select and Freeze the Release Candidate
 
 Use the exact commit on `main` that will be tested.
+
+Before manual UAT begins, activate the repository release-candidate freeze as described in `RELEASE_CANDIDATE_FREEZE.md`. The freeze activation itself must pass full CI; the resulting `main` commit becomes the candidate identity.
 
 Record:
 - repository;
