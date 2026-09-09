@@ -11,6 +11,7 @@ use App\Models\Complaint;
 use App\Models\ComplaintHistory;
 use App\Models\Priority;
 use App\Models\User;
+use App\Services\ComplaintNotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -98,6 +99,9 @@ class ComplaintShow extends Component
         $this->showAssignModal = false;
         $this->reloadComplaint();
 
+        app(ComplaintNotificationService::class)
+            ->notifyAssignment($this->complaint);
+
         $this->dispatch(
             'toast',
             type: 'success',
@@ -175,6 +179,9 @@ class ComplaintShow extends Component
 
         $this->reloadComplaint();
 
+        app(ComplaintNotificationService::class)
+            ->notifyReporterValidated($this->complaint);
+
         $this->dispatch(
             'toast',
             type: 'success',
@@ -199,6 +206,9 @@ class ComplaintShow extends Component
         });
 
         $this->reloadComplaint();
+
+        app(ComplaintNotificationService::class)
+            ->notifyReporterRejected($this->complaint);
 
         $this->dispatch(
             'toast',
@@ -248,6 +258,9 @@ class ComplaintShow extends Component
         });
 
         $this->reloadComplaint();
+
+        app(ComplaintNotificationService::class)
+            ->notifyReporterWaitingInput($this->complaint);
 
         $this->dispatch(
             'toast',
@@ -307,6 +320,9 @@ class ComplaintShow extends Component
 
         $this->reloadComplaint();
         $this->syncResolutionForm();
+
+        app(ComplaintNotificationService::class)
+            ->notifyReporterResolved($this->complaint);
 
         $this->dispatch(
             'toast',
@@ -392,6 +408,11 @@ class ComplaintShow extends Component
 
         $this->reloadComplaint();
 
+        if ($this->complaint->feedback?->needsFollowUp()) {
+            app(ComplaintNotificationService::class)
+                ->notifyHrdFeedbackNeedsFollowUp($this->complaint);
+        }
+
         $this->dispatch(
             'toast',
             type: 'success',
@@ -424,6 +445,9 @@ class ComplaintShow extends Component
 
         $this->feedback_address_note = '';
         $this->reloadComplaint();
+
+        app(ComplaintNotificationService::class)
+            ->notifyReporterFeedbackAddressed($this->complaint);
 
         $this->dispatch(
             'toast',
@@ -528,6 +552,9 @@ class ComplaintShow extends Component
         $this->showEscalationModal = false;
         $this->reloadComplaint();
 
+        app(ComplaintNotificationService::class)
+            ->notifyEscalation($this->complaint);
+
         $this->dispatch(
             'toast',
             type: 'success',
@@ -561,6 +588,9 @@ class ComplaintShow extends Component
 
         $this->escalation_resolution_note = '';
         $this->reloadComplaint();
+
+        app(ComplaintNotificationService::class)
+            ->notifyHrdEscalationResolved($this->complaint);
 
         $this->dispatch(
             'toast',
