@@ -179,6 +179,210 @@
 
                 </div>
 
+                {{-- Resolution & Follow-up --}}
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-surface-100">
+
+                    <div class="flex items-start justify-between gap-4 mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate2-900">
+                                Resolution & Follow-up
+                            </h2>
+                            <p class="text-sm text-slate2-500 mt-1">
+                                Root cause, solution, evidence, and post-resolution monitoring
+                            </p>
+                        </div>
+
+                        @if($complaint->follow_up_required)
+                            <span class="px-3 py-1 rounded-xl text-sm font-medium {{ $complaint->follow_up_completed_at ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
+                                {{ $complaint->follow_up_completed_at ? 'Follow-up Complete' : 'Follow-up Required' }}
+                            </span>
+                        @elseif($complaint->resolution_summary)
+                            <span class="px-3 py-1 rounded-xl text-sm font-medium bg-slate-100 text-slate-700">
+                                No Follow-up Required
+                            </span>
+                        @endif
+                    </div>
+
+                    @can('updateResolution', $complaint)
+                        <div class="space-y-5">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                                    Root Cause Analysis
+                                </label>
+                                <textarea
+                                    wire:model="root_cause"
+                                    rows="4"
+                                    class="input resize-none"
+                                    placeholder="Describe the verified root cause of the complaint..."></textarea>
+                                @error('root_cause')
+                                    <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                                    Resolution Summary
+                                </label>
+                                <textarea
+                                    wire:model="resolution_summary"
+                                    rows="4"
+                                    class="input resize-none"
+                                    placeholder="Describe the solution or corrective action taken..."></textarea>
+                                @error('resolution_summary')
+                                    <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                                    Evidence / Reference
+                                </label>
+                                <textarea
+                                    wire:model="resolution_evidence"
+                                    rows="3"
+                                    class="input resize-none"
+                                    placeholder="Optional reference, verification note, document number, or evidence description..."></textarea>
+                                @error('resolution_evidence')
+                                    <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="rounded-2xl border border-surface-200 p-5 space-y-4">
+                                <label class="flex items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        wire:model.live="follow_up_required"
+                                        class="rounded border-surface-300 text-brand-600 focus:ring-brand-500">
+                                    <span class="font-semibold text-slate2-800">
+                                        Follow-up monitoring is required
+                                    </span>
+                                </label>
+
+                                @if($follow_up_required)
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate2-700 mb-2">
+                                            Follow-up Due
+                                        </label>
+                                        <input
+                                            type="datetime-local"
+                                            wire:model="follow_up_due_at"
+                                            class="input">
+                                        @error('follow_up_due_at')
+                                            <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="flex justify-end">
+                                <button
+                                    wire:click="saveResolutionAnalysis"
+                                    wire:loading.attr="disabled"
+                                    wire:target="saveResolutionAnalysis"
+                                    class="px-5 py-3 rounded-2xl bg-brand-600 text-white hover:bg-brand-700 transition">
+                                    Save Resolution Analysis
+                                </button>
+                            </div>
+                        </div>
+                    @else
+                        @if($complaint->root_cause || $complaint->resolution_summary)
+                            <div class="space-y-5">
+                                <div>
+                                    <p class="text-xs uppercase tracking-wide font-semibold text-slate2-400 mb-2">
+                                        Root Cause
+                                    </p>
+                                    <p class="text-slate2-700 leading-7">
+                                        {{ $complaint->root_cause ?: 'Not recorded.' }}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs uppercase tracking-wide font-semibold text-slate2-400 mb-2">
+                                        Resolution
+                                    </p>
+                                    <p class="text-slate2-700 leading-7">
+                                        {{ $complaint->resolution_summary ?: 'Not recorded.' }}
+                                    </p>
+                                </div>
+
+                                @if($complaint->resolution_evidence)
+                                    <div>
+                                        <p class="text-xs uppercase tracking-wide font-semibold text-slate2-400 mb-2">
+                                            Evidence / Reference
+                                        </p>
+                                        <p class="text-slate2-700 leading-7">
+                                            {{ $complaint->resolution_evidence }}
+                                        </p>
+                                    </div>
+                                @endif
+                            </div>
+                        @else
+                            <div class="rounded-2xl border border-dashed border-surface-200 p-6 text-sm text-slate2-500">
+                                Resolution analysis has not been recorded yet.
+                            </div>
+                        @endif
+                    @endcan
+
+                    @if($complaint->follow_up_required && $complaint->status === 'resolved')
+                        <div class="mt-6 pt-6 border-t border-surface-100">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                                <div>
+                                    <p class="text-xs uppercase tracking-wide font-semibold text-slate2-400 mb-1">
+                                        Follow-up Due
+                                    </p>
+                                    <p class="font-semibold text-slate2-800">
+                                        {{ $complaint->follow_up_due_at?->format('d M Y H:i') ?? '-' }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase tracking-wide font-semibold text-slate2-400 mb-1">
+                                        Completed At
+                                    </p>
+                                    <p class="font-semibold text-slate2-800">
+                                        {{ $complaint->follow_up_completed_at?->format('d M Y H:i') ?? 'Pending' }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            @can('completeFollowUp', $complaint)
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                                        Follow-up Evaluation Note
+                                    </label>
+                                    <textarea
+                                        wire:model="follow_up_note"
+                                        rows="3"
+                                        class="input resize-none"
+                                        placeholder="Record monitoring result, recurrence check, and evaluation..."></textarea>
+                                    @error('follow_up_note')
+                                        <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                                    @enderror
+
+                                    <div class="flex justify-end mt-4">
+                                        <button
+                                            wire:click="completeFollowUp"
+                                            class="px-5 py-3 rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 transition">
+                                            Complete Follow-up
+                                        </button>
+                                    </div>
+                                </div>
+                            @else
+                                @if($complaint->follow_up_note)
+                                    <div>
+                                        <p class="text-xs uppercase tracking-wide font-semibold text-slate2-400 mb-2">
+                                            Follow-up Evaluation
+                                        </p>
+                                        <p class="text-slate2-700 leading-7">
+                                            {{ $complaint->follow_up_note }}
+                                        </p>
+                                    </div>
+                                @endif
+                            @endcan
+                        </div>
+                    @endif
+
+                </div>
+
                 {{-- Activity Timeline --}}
                 <div class="bg-white rounded-3xl p-8 shadow-sm border border-surface-100">
 
@@ -456,6 +660,16 @@
 
                             </span>
 
+                        </div>
+
+                        <div>
+                            <p class="text-sm text-slate2-500 mb-1">
+                                PIC / HRD Handler
+                            </p>
+
+                            <p class="font-semibold text-slate2-900">
+                                {{ $complaint->handler?->name ?? 'Not assigned' }}
+                            </p>
                         </div>
 
                         <div>
