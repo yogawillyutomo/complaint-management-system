@@ -4,6 +4,7 @@ namespace App\Livewire\Complaint;
 
 use App\Enums\EscalationLevel;
 use App\Enums\EscalationReason;
+use App\Enums\FeedbackOutcome;
 use App\Enums\RootCauseCategory;
 use App\Models\Category;
 use App\Models\Complaint;
@@ -42,6 +43,12 @@ class ComplaintShow extends Component
     public $escalated_to = '';
     public $escalation_note = '';
     public $escalation_resolution_note = '';
+
+    public $feedback_outcome = '';
+    public $feedback_rating = '';
+    public $feedback_comment = '';
+    public $feedback_address_note = '';
+    public $closed_without_feedback_reason = '';
 
     public function mount(Complaint $complaint): void
     {
@@ -286,6 +293,7 @@ class ComplaintShow extends Component
                     'resolved_at' => now(),
                     'follow_up_completed_at' => null,
                     'follow_up_note' => null,
+                    'closed_without_feedback_reason' => null,
                 ]
             ));
 
@@ -339,24 +347,121 @@ class ComplaintShow extends Component
         );
     }
 
+    public function submitFeedback(): void
+    {
+        $this->authorizeFresh('submitFeedback');
+
+        $this->validate([
+            'feedback_outcome' => 'required|in:' . implode(',', FeedbackOutcome::values()),
+            'feedback_rating' => 'required|integer|min:1|max:5',
+            'feedback_comment' => 'nullable|string|max:5000',
+        ]);
+
+        if (
+            $this->feedback_outcome === FeedbackOutcome::NeedsFollowUp->value
+            && blank($this->feedback_comment)
+        ) {
+            throw ValidationException::withMessages([
+                'feedback_comment' => 'Please explain what still needs follow-up.',
+            ]);
+        }
+
+        DB::transaction(function (): void {
+            $this->complaint->feedback()->create([
+                'submitted_by' => auth()->id(),
+                'outcome' => $this->feedback_outcome,
+                'satisfaction_rating' => (int) $this->feedback_rating,
+                'comment' => filled($this->feedback_comment)
+                    ? $this->feedback_comment
+                    : null,
+            ]);
+
+            $this->recordHistory(
+                'employee_feedback_submitted',
+                $this->feedback_outcome === FeedbackOutcome::Accepted->value
+                    ? 'Employee accepted the recorded resolution'
+                    : 'Employee requested additional follow-up after resolution'
+            );
+        });
+
+        $this->reset([
+            'feedback_outcome',
+            'feedback_rating',
+            'feedback_comment',
+        ]);
+
+        $this->reloadComplaint();
+
+        $this->dispatch(
+            'toast',
+            type: 'success',
+            message: 'Resolution feedback submitted.'
+        );
+    }
+
+    public function addressFeedback(): void
+    {
+        $this->authorizeFresh('addressFeedback');
+
+        $this->validate([
+            'feedback_address_note' => 'required|string|min:10|max:5000',
+        ]);
+
+        $feedback = $this->complaint->feedback()->firstOrFail();
+
+        DB::transaction(function () use ($feedback): void {
+            $feedback->update([
+                'addressed_by' => auth()->id(),
+                'addressed_at' => now(),
+                'address_note' => $this->feedback_address_note,
+            ]);
+
+            $this->recordHistory(
+                'employee_feedback_addressed',
+                'Assigned HRD addressed employee follow-up feedback'
+            );
+        });
+
+        $this->feedback_address_note = '';
+        $this->reloadComplaint();
+
+        $this->dispatch(
+            'toast',
+            type: 'success',
+            message: 'Employee feedback addressed.'
+        );
+    }
+
     public function closeComplaint(): void
     {
         $this->authorizeFresh('closeComplaint');
 
-        DB::transaction(function (): void {
+        $feedback = $this->complaint->feedback()->first();
+
+        if (! $feedback) {
+            $this->validate([
+                'closed_without_feedback_reason' => 'required|string|min:10|max:5000',
+            ]);
+        }
+
+        DB::transaction(function () use ($feedback): void {
             $this->complaint->update([
                 'status' => 'closed',
                 'closed_at' => now(),
+                'closed_without_feedback_reason' => $feedback
+                    ? null
+                    : $this->closed_without_feedback_reason,
             ]);
 
             $this->recordHistory(
                 'closed',
-                $this->complaint->follow_up_required
-                    ? 'Complaint closed after follow-up completion'
-                    : 'Complaint closed'
+                $feedback
+                    ? 'Complaint closed after employee resolution feedback'
+                    : 'Complaint closed without employee feedback; closure reason recorded'
             );
         });
 
+        $this->closed_without_feedback_reason = '';
         $this->reloadComplaint();
 
         $this->dispatch(
@@ -514,6 +619,7 @@ class ComplaintShow extends Component
                 ->where('is_active', true)
                 ->get(),
             'rootCauseCategories' => RootCauseCategory::cases(),
+            'feedbackOutcomes' => FeedbackOutcome::cases(),
             'escalationReasons' => EscalationReason::cases(),
             'escalationLevels' => EscalationLevel::cases(),
             'leadershipTargets' => User::role('pimpinan')
@@ -598,6 +704,8 @@ class ComplaintShow extends Component
             'escalations.target',
             'escalations.resolver',
             'activeEscalation',
+            'feedback.submitter',
+            'feedback.addressedBy',
         ]);
     }
 }

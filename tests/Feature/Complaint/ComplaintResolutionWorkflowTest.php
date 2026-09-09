@@ -137,6 +137,10 @@ class ComplaintResolutionWorkflowTest extends TestCase
 
         Livewire::actingAs($hrd)
             ->test(ComplaintShow::class, ['complaint' => $resolved])
+            ->set(
+                'closed_without_feedback_reason',
+                'The resolution workflow fixture has no employee feedback and records an explicit closure reason.'
+            )
             ->call('closeComplaint')
             ->assertHasNoErrors();
 
@@ -205,6 +209,10 @@ class ComplaintResolutionWorkflowTest extends TestCase
 
         Livewire::actingAs($hrd)
             ->test(ComplaintShow::class, ['complaint' => $followedUp])
+            ->set(
+                'closed_without_feedback_reason',
+                'The follow-up workflow fixture has no employee feedback and records an explicit closure reason.'
+            )
             ->call('closeComplaint')
             ->assertHasNoErrors();
 

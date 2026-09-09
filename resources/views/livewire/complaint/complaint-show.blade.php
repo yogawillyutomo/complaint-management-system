@@ -417,6 +417,222 @@
 
                 </div>
 
+                {{-- Employee Feedback --}}
+                @if(in_array($complaint->status, ['resolved', 'closed'], true))
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-surface-100">
+
+                    <div class="flex items-start justify-between gap-4 mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate2-900">
+                                Employee Resolution Feedback
+                            </h2>
+                            <p class="text-sm text-slate2-500 mt-1">
+                                Reporter confirmation and satisfaction after the recorded resolution
+                            </p>
+                        </div>
+
+                        @if($complaint->feedback)
+                            @if($complaint->feedback->outcome === \App\Enums\FeedbackOutcome::Accepted->value)
+                                <span class="px-3 py-1 rounded-xl bg-emerald-100 text-emerald-700 text-xs font-semibold">
+                                    Accepted
+                                </span>
+                            @elseif($complaint->feedback->addressed_at)
+                                <span class="px-3 py-1 rounded-xl bg-blue-100 text-blue-700 text-xs font-semibold">
+                                    Follow-up Addressed
+                                </span>
+                            @else
+                                <span class="px-3 py-1 rounded-xl bg-amber-100 text-amber-700 text-xs font-semibold">
+                                    Needs Follow-up
+                                </span>
+                            @endif
+                        @else
+                            <span class="px-3 py-1 rounded-xl bg-slate-100 text-slate2-500 text-xs font-semibold">
+                                Awaiting Feedback
+                            </span>
+                        @endif
+                    </div>
+
+                    @can('submitFeedback', $complaint)
+                        <div class="space-y-5">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                                    Resolution Outcome
+                                </label>
+                                <select wire:model="feedback_outcome" class="input">
+                                    <option value="">Select outcome</option>
+                                    @foreach($feedbackOutcomes as $outcome)
+                                        <option value="{{ $outcome->value }}">
+                                            {{ $outcome->label() }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('feedback_outcome')
+                                    <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                                    Satisfaction Rating
+                                </label>
+                                <select wire:model="feedback_rating" class="input">
+                                    <option value="">Select rating</option>
+                                    <option value="1">1 — Very Dissatisfied</option>
+                                    <option value="2">2 — Dissatisfied</option>
+                                    <option value="3">3 — Neutral</option>
+                                    <option value="4">4 — Satisfied</option>
+                                    <option value="5">5 — Very Satisfied</option>
+                                </select>
+                                @error('feedback_rating')
+                                    <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                                    Comment
+                                </label>
+                                <textarea
+                                    wire:model="feedback_comment"
+                                    rows="4"
+                                    class="input resize-none"
+                                    placeholder="Tell us whether the resolution answered the complaint and what still needs attention..."></textarea>
+                                @error('feedback_comment')
+                                    <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="flex justify-end">
+                                <button
+                                    wire:click="submitFeedback"
+                                    class="px-5 py-3 rounded-2xl bg-brand-600 text-white hover:bg-brand-700 transition">
+                                    Submit Feedback
+                                </button>
+                            </div>
+                        </div>
+                    @else
+                        @if($complaint->feedback)
+                            <div class="space-y-5">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="rounded-2xl bg-surface-50 p-4">
+                                        <p class="text-xs uppercase tracking-wide font-semibold text-slate2-400">
+                                            Outcome
+                                        </p>
+                                        <p class="font-semibold text-slate2-900 mt-2">
+                                            {{ \App\Enums\FeedbackOutcome::tryFrom($complaint->feedback->outcome)?->label() ?? $complaint->feedback->outcome }}
+                                        </p>
+                                    </div>
+
+                                    <div class="rounded-2xl bg-surface-50 p-4">
+                                        <p class="text-xs uppercase tracking-wide font-semibold text-slate2-400">
+                                            Satisfaction
+                                        </p>
+                                        <p class="font-semibold text-slate2-900 mt-2">
+                                            {{ $complaint->feedback->satisfaction_rating }}/5
+                                        </p>
+                                    </div>
+
+                                    <div class="rounded-2xl bg-surface-50 p-4">
+                                        <p class="text-xs uppercase tracking-wide font-semibold text-slate2-400">
+                                            Submitted
+                                        </p>
+                                        <p class="font-semibold text-slate2-900 mt-2">
+                                            {{ $complaint->feedback->created_at->format('d M Y H:i') }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                @if($complaint->feedback->comment)
+                                    <div>
+                                        <p class="text-xs uppercase tracking-wide font-semibold text-slate2-400 mb-2">
+                                            Employee Comment
+                                        </p>
+                                        <p class="text-slate2-700 leading-7">
+                                            {{ $complaint->feedback->comment }}
+                                        </p>
+                                    </div>
+                                @endif
+
+                                @if($complaint->feedback->addressed_at)
+                                    <div class="rounded-2xl border border-blue-100 bg-blue-50/60 p-5">
+                                        <p class="text-sm font-semibold text-blue-800">
+                                            Follow-up addressed
+                                        </p>
+                                        <p class="text-sm text-blue-700 mt-2 leading-6">
+                                            {{ $complaint->feedback->address_note }}
+                                        </p>
+                                        <p class="text-xs text-blue-600 mt-3">
+                                            {{ $complaint->feedback->addressedBy?->name ?? 'HRD' }}
+                                            · {{ $complaint->feedback->addressed_at->format('d M Y H:i') }}
+                                        </p>
+                                    </div>
+                                @endif
+                            </div>
+                        @elseif($complaint->status === 'closed' && $complaint->closed_without_feedback_reason)
+                            <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+                                <p class="text-sm font-semibold text-amber-800">
+                                    Closed without employee feedback
+                                </p>
+                                <p class="text-sm text-amber-700 mt-2 leading-6">
+                                    {{ $complaint->closed_without_feedback_reason }}
+                                </p>
+                            </div>
+                        @else
+                            <div class="rounded-2xl border border-dashed border-surface-200 p-6 text-sm text-slate2-500">
+                                No employee feedback has been submitted yet.
+                            </div>
+                        @endif
+                    @endcan
+
+                    @can('addressFeedback', $complaint)
+                        <div class="mt-6 pt-6 border-t border-surface-100">
+                            <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                                HRD Follow-up Response
+                            </label>
+                            <textarea
+                                wire:model="feedback_address_note"
+                                rows="4"
+                                class="input resize-none"
+                                placeholder="Record what was done to address the employee's remaining concern..."></textarea>
+                            @error('feedback_address_note')
+                                <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                            @enderror
+
+                            <div class="flex justify-end mt-4">
+                                <button
+                                    wire:click="addressFeedback"
+                                    class="px-5 py-3 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 transition">
+                                    Mark Feedback Addressed
+                                </button>
+                            </div>
+                        </div>
+                    @endcan
+
+                    @can('closeComplaint', $complaint)
+                        @if(! $complaint->feedback)
+                            <div class="mt-6 pt-6 border-t border-surface-100">
+                                <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 mb-4 text-sm text-amber-800">
+                                    Employee feedback has not been submitted. A closure reason is required before closing this complaint.
+                                </div>
+
+                                <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                                    Reason for Closing Without Feedback
+                                </label>
+                                <textarea
+                                    wire:model="closed_without_feedback_reason"
+                                    rows="3"
+                                    class="input resize-none"
+                                    placeholder="Explain why the complaint can be closed without employee feedback..."></textarea>
+                                @error('closed_without_feedback_reason')
+                                    <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        @endif
+                    @endcan
+
+                </div>
+                @endif
+
                 {{-- Activity Timeline --}}
                 <div class="bg-white rounded-3xl p-8 shadow-sm border border-surface-100">
 

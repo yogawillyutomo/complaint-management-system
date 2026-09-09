@@ -77,6 +77,7 @@ class Complaint extends Model
         'resolution_due_at',
         'resolved_at',
         'closed_at',
+        'closed_without_feedback_reason',
     ];
 
     public function reporter()
@@ -121,6 +122,11 @@ class Complaint extends Model
     {
         return $this->hasMany(ComplaintEscalation::class)
             ->latest();
+    }
+
+    public function feedback()
+    {
+        return $this->hasOne(ComplaintFeedback::class);
     }
 
     public function activeEscalation()

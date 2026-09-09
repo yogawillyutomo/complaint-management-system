@@ -220,6 +220,10 @@ class ComplaintAuthorizationTest extends TestCase
 
         Livewire::actingAs($hrd)
             ->test(ComplaintShow::class, ['complaint' => $complaint->fresh()])
+            ->set(
+                'closed_without_feedback_reason',
+                'The resolved workflow test has no employee feedback fixture, so closure reason is recorded.'
+            )
             ->call('closeComplaint')
             ->assertHasNoErrors();
 
