@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "active": false,
+  "active": true,
   "allowed_change_labels": [
     "rc-defect-fix",
     "rc-security-fix",
