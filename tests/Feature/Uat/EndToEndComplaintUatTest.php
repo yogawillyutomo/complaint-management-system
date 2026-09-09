@@ -14,6 +14,7 @@ use App\Models\Priority;
 use App\Models\User;
 use App\Services\ActionCenterService;
 use Carbon\Carbon;
+use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\UatScenarioSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -311,6 +312,25 @@ class EndToEndComplaintUatTest extends TestCase
             $this->assertDatabaseHas('complaint_histories', [
                 'complaint_id' => $closed->id,
                 'type' => $historyType,
+            ]);
+        }
+    }
+
+    public function test_normal_database_seeding_creates_reference_data_without_login_accounts(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $this->assertDatabaseCount('users', 0);
+
+        foreach (['admin', 'karyawan', 'supervisor', 'hrd', 'pimpinan'] as $role) {
+            $this->assertDatabaseHas('roles', [
+                'name' => $role,
+            ]);
+        }
+
+        foreach (['Low', 'Medium', 'High', 'Critical'] as $priority) {
+            $this->assertDatabaseHas('priorities', [
+                'name' => $priority,
             ]);
         }
     }
