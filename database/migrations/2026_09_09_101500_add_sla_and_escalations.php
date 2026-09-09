@@ -2,6 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -18,6 +20,58 @@ return new class extends Migration
             $table->timestamp('response_due_at')->nullable()->index()->after('first_response_at');
             $table->timestamp('resolution_due_at')->nullable()->index()->after('response_due_at');
         });
+
+        $slaDefaults = [
+            'Low' => [480, 4320],
+            'Medium' => [240, 2880],
+            'High' => [120, 1440],
+            'Critical' => [30, 480],
+        ];
+
+        foreach ($slaDefaults as $name => [$responseMinutes, $resolutionMinutes]) {
+            DB::table('priorities')
+                ->where('name', $name)
+                ->update([
+                    'response_minutes' => $responseMinutes,
+                    'resolution_minutes' => $resolutionMinutes,
+                ]);
+        }
+
+        $priorities = DB::table('priorities')
+            ->get()
+            ->keyBy('id');
+
+        DB::table('complaints')
+            ->orderBy('id')
+            ->chunkById(100, function ($complaints) use ($priorities): void {
+                foreach ($complaints as $complaint) {
+                    $priority = $priorities->get($complaint->priority_id);
+
+                    if (! $priority || ! $complaint->created_at) {
+                        continue;
+                    }
+
+                    $createdAt = Carbon::parse($complaint->created_at);
+
+                    $firstResponseAt = DB::table('complaint_histories')
+                        ->where('complaint_id', $complaint->id)
+                        ->whereIn('type', ['validated', 'rejected'])
+                        ->orderBy('created_at')
+                        ->value('created_at');
+
+                    DB::table('complaints')
+                        ->where('id', $complaint->id)
+                        ->update([
+                            'first_response_at' => $firstResponseAt,
+                            'response_due_at' => $createdAt
+                                ->copy()
+                                ->addMinutes((int) $priority->response_minutes),
+                            'resolution_due_at' => $createdAt
+                                ->copy()
+                                ->addMinutes((int) $priority->resolution_minutes),
+                        ]);
+                }
+            });
 
         Schema::create('complaint_escalations', function (Blueprint $table) {
             $table->id();
