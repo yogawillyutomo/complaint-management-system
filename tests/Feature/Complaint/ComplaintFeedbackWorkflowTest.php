@@ -236,6 +236,24 @@ class ComplaintFeedbackWorkflowTest extends TestCase
         $this->assertNull($closed->closed_without_feedback_reason);
     }
 
+    public function test_submitted_feedback_content_is_immutable(): void
+    {
+        $complaint = $this->resolvedComplaint();
+
+        $feedback = $complaint->feedback()->create([
+            'submitted_by' => $this->employee->id,
+            'outcome' => FeedbackOutcome::Accepted->value,
+            'satisfaction_rating' => 5,
+            'comment' => 'Original employee feedback.',
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $feedback->update([
+            'comment' => 'Rewritten feedback should be rejected.',
+        ]);
+    }
+
     public function test_feedback_metrics_measure_coverage_satisfaction_and_pending_follow_up(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-09-09 12:00:00'));
