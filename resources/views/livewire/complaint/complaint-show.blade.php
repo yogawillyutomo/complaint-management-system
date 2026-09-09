@@ -207,6 +207,23 @@
                         <div class="space-y-5">
                             <div>
                                 <label class="block text-sm font-semibold text-slate2-700 mb-2">
+                                    Root Cause Category
+                                </label>
+                                <select wire:model="root_cause_category" class="input">
+                                    <option value="">Select root cause category</option>
+                                    @foreach($rootCauseCategories as $rootCauseCategory)
+                                        <option value="{{ $rootCauseCategory->value }}">
+                                            {{ $rootCauseCategory->label() }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('root_cause_category')
+                                    <p class="text-sm text-red-500 mt-2">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-slate2-700 mb-2">
                                     Root Cause Analysis
                                 </label>
                                 <textarea
@@ -289,7 +306,16 @@
                             <div class="space-y-5">
                                 <div>
                                     <p class="text-xs uppercase tracking-wide font-semibold text-slate2-400 mb-2">
-                                        Root Cause
+                                        Root Cause Category
+                                    </p>
+                                    <p class="font-semibold text-slate2-800">
+                                        {{ \App\Enums\RootCauseCategory::tryFrom((string) $complaint->root_cause_category)?->label() ?? 'Not recorded.' }}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs uppercase tracking-wide font-semibold text-slate2-400 mb-2">
+                                        Root Cause Analysis
                                     </p>
                                     <p class="text-slate2-700 leading-7">
                                         {{ $complaint->root_cause ?: 'Not recorded.' }}
