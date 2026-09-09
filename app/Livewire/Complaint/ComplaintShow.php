@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Complaint;
 
+use App\Enums\RootCauseCategory;
 use App\Models\Category;
 use App\Models\Complaint;
 use App\Models\ComplaintHistory;
@@ -25,6 +26,7 @@ class ComplaintShow extends Component
     public $showAssignModal = false;
     public $message = '';
 
+    public $root_cause_category = '';
     public $root_cause = '';
     public $resolution_summary = '';
     public $resolution_evidence = '';
@@ -59,7 +61,7 @@ class ComplaintShow extends Component
 
         $handler = User::find($this->assigned_to);
 
-        if (! $handler?->hasRole('hrd')) {
+        if (! $handler?->hasRole('hrd') || ! $handler->is_active) {
             $this->addError('assigned_to', 'Selected user must have the HRD role.');
 
             return;
@@ -402,17 +404,19 @@ class ComplaintShow extends Component
             'handlers' => User::role('hrd')
                 ->where('is_active', true)
                 ->get(),
+            'rootCauseCategories' => RootCauseCategory::cases(),
         ])->layout('layouts.app');
     }
 
     private function validateResolutionForm(): void
     {
         $this->validate([
+            'root_cause_category' => 'required|in:' . implode(',', RootCauseCategory::values()),
             'root_cause' => 'required|string|min:10|max:5000',
             'resolution_summary' => 'required|string|min:10|max:5000',
             'resolution_evidence' => 'nullable|string|max:5000',
             'follow_up_required' => 'boolean',
-            'follow_up_due_at' => 'nullable|date',
+            'follow_up_due_at' => 'nullable|date|after_or_equal:today',
         ]);
 
         if ($this->follow_up_required && blank($this->follow_up_due_at)) {
@@ -425,6 +429,7 @@ class ComplaintShow extends Component
     private function resolutionPayload(): array
     {
         return [
+            'root_cause_category' => $this->root_cause_category,
             'root_cause' => $this->root_cause,
             'resolution_summary' => $this->resolution_summary,
             'resolution_evidence' => filled($this->resolution_evidence)
@@ -439,6 +444,7 @@ class ComplaintShow extends Component
 
     private function syncResolutionForm(): void
     {
+        $this->root_cause_category = $this->complaint->root_cause_category ?? '';
         $this->root_cause = $this->complaint->root_cause ?? '';
         $this->resolution_summary = $this->complaint->resolution_summary ?? '';
         $this->resolution_evidence = $this->complaint->resolution_evidence ?? '';
