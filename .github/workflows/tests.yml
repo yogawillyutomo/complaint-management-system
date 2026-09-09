@@ -41,7 +41,7 @@ jobs:
       - name: Resolve security dependency updates
         run: |
           composer update guzzlehttp/guzzle guzzlehttp/psr7 league/commonmark livewire/livewire \
-            --with-all-dependencies \
+            --with-dependencies \
             --no-interaction \
             --no-progress \
             --no-scripts
