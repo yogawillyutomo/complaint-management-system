@@ -318,9 +318,15 @@ class EndToEndComplaintUatTest extends TestCase
 
     public function test_normal_database_seeding_creates_reference_data_without_login_accounts(): void
     {
+        $usersBeforeSeed = User::count();
+
         $this->seed(DatabaseSeeder::class);
 
-        $this->assertDatabaseCount('users', 0);
+        $this->assertSame(
+            $usersBeforeSeed,
+            User::count(),
+            'Normal database seeding must not provision login accounts.'
+        );
 
         foreach (['admin', 'karyawan', 'supervisor', 'hrd', 'pimpinan'] as $role) {
             $this->assertDatabaseHas('roles', [
