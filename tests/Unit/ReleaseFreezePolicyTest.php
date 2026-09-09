@@ -94,6 +94,35 @@ class ReleaseFreezePolicyTest extends TestCase
         ];
     }
 
+    #[DataProvider('approvedTitlePrefixes')]
+    public function test_active_freeze_allows_non_documentation_change_with_approved_title_prefix(
+        string $title
+    ): void {
+        $result = $this->policy->evaluate(
+            $this->config(),
+            [
+                ['status' => 'M', 'path' => 'app/Models/Complaint.php'],
+            ],
+            [],
+            $title
+        );
+
+        $this->assertTrue($result['allowed']);
+        $this->assertSame('RC_CHANGE_APPROVED', $result['code']);
+        $this->assertTrue($result['replacement_candidate_required']);
+        $this->assertNotEmpty($result['matching_title_prefixes']);
+    }
+
+    public static function approvedTitlePrefixes(): array
+    {
+        return [
+            'defect fix' => ['[rc-defect] Fix UAT defect'],
+            'security fix' => ['[rc-security] Patch dependency issue'],
+            'test correction' => ['[rc-test] Correct regression fixture'],
+            'candidate replacement' => ['[rc-replace] Replace release candidate'],
+        ];
+    }
+
     public function test_historical_migration_modification_is_blocked_even_with_approved_label(): void
     {
         $result = $this->policy->evaluate(
@@ -192,6 +221,24 @@ class ReleaseFreezePolicyTest extends TestCase
         );
     }
 
+    public function test_freeze_config_can_be_changed_with_freeze_admin_title_prefix(): void
+    {
+        $result = $this->policy->evaluate(
+            $this->config(),
+            [
+                [
+                    'status' => 'M',
+                    'path' => '.github/rc-freeze.json',
+                ],
+            ],
+            [],
+            '[rc-admin] Activate release-candidate freeze'
+        );
+
+        $this->assertTrue($result['allowed']);
+        $this->assertSame('RC_CHANGE_APPROVED', $result['code']);
+    }
+
     public function test_freeze_config_can_be_changed_with_freeze_admin_label(): void
     {
         $result = $this->policy->evaluate(
@@ -222,6 +269,14 @@ class ReleaseFreezePolicyTest extends TestCase
                 'rc-freeze-admin',
             ],
             'freeze_admin_label' => 'rc-freeze-admin',
+            'allowed_title_prefixes' => [
+                '[rc-defect]',
+                '[rc-security]',
+                '[rc-test]',
+                '[rc-replace]',
+                '[rc-admin]',
+            ],
+            'freeze_admin_title_prefix' => '[rc-admin]',
             'docs_only_prefixes' => [
                 'docs/',
             ],
