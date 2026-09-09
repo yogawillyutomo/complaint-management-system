@@ -9,8 +9,9 @@ class ActionCenter extends Component
 {
     public string $urgency = '';
 
-    public function render(ActionCenterService $service)
+    public function render()
     {
+        $service = app(ActionCenterService::class);
         $items = $service->forUser(auth()->user());
 
         if (filled($this->urgency)) {
