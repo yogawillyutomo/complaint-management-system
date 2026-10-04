@@ -23,8 +23,10 @@ class AuthenticationTest extends TestCase
             ->assertSee('PT Telkom')
             ->assertSee('Complaint Management System')
             ->assertSee('Sign in to continue managing employee complaints')
+            ->assertSee('name@company.com')
             ->assertSee('Remember me')
             ->assertSee('Forgot your password?')
+            ->assertSee('Log in')
             ->assertDontSee('Laravel');
     }
 
