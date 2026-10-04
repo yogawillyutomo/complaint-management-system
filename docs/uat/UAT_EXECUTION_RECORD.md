@@ -119,14 +119,14 @@ No unresolved functional defect was observed in the targeted replacement-RC rete
 
 ## Acceptance
 
-Targeted replacement-RC retest result: **PASS — pending explicit human acceptance/sign-off**.
+Targeted replacement-RC retest result: **PASS — human acceptance/sign-off received**.
 
 - **All required targeted retest scenarios executed:** YES
 - **Unresolved FAIL:** NONE OBSERVED
 - **BLOCKED targeted scenarios:** NONE
-- **Accepted for thesis evidence:** PENDING HUMAN SIGN-OFF
-- **Accepted as release candidate:** PENDING HUMAN SIGN-OFF
-- **Outstanding conditions:** Human tester must explicitly approve the acceptance statements. Administration / retention / security was not manually replayed because it was outside this targeted replacement-RC retest; exact-RC automated security/regression gates passed.
+- **Accepted for thesis evidence:** YES
+- **Accepted as release candidate:** YES
+- **Outstanding conditions:** None for the targeted replacement-RC acceptance. Administration / retention / security was not manually replayed because it was outside this targeted retest; exact-RC automated security/regression gates passed.
 
 ### Tester Sign-off
 
@@ -136,4 +136,4 @@ Role: Manual UAT tester / repository owner
 
 Date: 2026-10-04
 
-Signature/approval reference: **PENDING HUMAN SIGN-OFF**
+Signature/approval reference: Explicit approval in ChatGPT UAT session on 2026-10-04 — "Saya setujui UAT, gas merge PR #19"
