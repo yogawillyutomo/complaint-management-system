@@ -18,7 +18,16 @@ class AuthenticationTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSeeVolt('pages.auth.login');
+            ->assertSeeVolt('pages.auth.login')
+            ->assertSee('Complaint System')
+            ->assertSee('PT Telkom')
+            ->assertSee('Complaint Management System')
+            ->assertSee('Sign in to continue managing employee complaints')
+            ->assertSee('name@company.com')
+            ->assertSee('Remember me')
+            ->assertSee('Forgot your password?')
+            ->assertSee('Log in')
+            ->assertDontSee('Laravel');
     }
 
     public function test_users_can_authenticate_using_the_login_screen(): void
